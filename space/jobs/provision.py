@@ -79,7 +79,7 @@ def run_create_site(job_name: str):
 		progress(25, f"Creating site {domain}")
 		install_erpnext = any(
 			(r.app_package or "").lower() == "erpnext" for r in (plan.allowed_apps or [])
-		) or True
+		)
 		bench_client.new_site(
 			server,
 			domain,

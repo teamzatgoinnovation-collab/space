@@ -72,6 +72,7 @@ def _seed_all():
 	_seed_settings()
 	_seed_plans()
 	_seed_default_server()
+	_seed_number_cards()
 	frappe.db.commit()
 
 
@@ -157,3 +158,99 @@ def _seed_default_server():
 			"is_default": 1,
 		}
 	).insert(ignore_permissions=True)
+
+
+NUMBER_CARDS = [
+	{
+		"name": "Space Total Customers",
+		"label": "Customers",
+		"document_type": "Space Customer",
+		"function": "Count",
+		"filters_json": "[]",
+	},
+	{
+		"name": "Space Total Servers",
+		"label": "Servers",
+		"document_type": "Space Server",
+		"function": "Count",
+		"filters_json": "[]",
+	},
+	{
+		"name": "Space Total Sites",
+		"label": "Sites",
+		"document_type": "Space Site",
+		"function": "Count",
+		"filters_json": '[["Space Site","status","!=","Deleted"]]',
+	},
+	{
+		"name": "Space Active Sites",
+		"label": "Active Sites",
+		"document_type": "Space Site",
+		"function": "Count",
+		"filters_json": '[["Space Site","status","=","Active"]]',
+	},
+	{
+		"name": "Space Failed Jobs",
+		"label": "Failed Jobs",
+		"document_type": "Space Deployment Job",
+		"function": "Count",
+		"filters_json": '[["Space Deployment Job","status","=","Failed"]]',
+	},
+]
+
+
+def _seed_number_cards():
+	if not frappe.db.exists("DocType", "Number Card"):
+		return
+	card_names = []
+	for spec in NUMBER_CARDS:
+		card_names.append(spec["name"])
+		if frappe.db.exists("Number Card", spec["name"]):
+			doc = frappe.get_doc("Number Card", spec["name"])
+			for k, v in spec.items():
+				if k != "name":
+					doc.set(k, v)
+			doc.is_public = 1
+			doc.module = "Space"
+			doc.save(ignore_permissions=True)
+		else:
+			frappe.get_doc(
+				{
+					"doctype": "Number Card",
+					**spec,
+					"is_public": 1,
+					"module": "Space",
+					"show_percentage_stats": 0,
+				}
+			).insert(ignore_permissions=True)
+
+	if not frappe.db.exists("Workspace", "Cloud Manager"):
+		return
+	ws = frappe.get_doc("Workspace", "Cloud Manager")
+	ws.set("number_cards", [])
+	for name in card_names:
+		ws.append("number_cards", {"number_card_name": name, "label": name})
+	# Ensure number cards appear in workspace content
+	import json
+
+	try:
+		content = json.loads(ws.content or "[]")
+	except Exception:
+		content = []
+	# Drop old number_card blocks then prepend fresh ones after header
+	content = [b for b in content if b.get("type") != "number_card"]
+	nc_blocks = [
+		{
+			"id": f"nc{i}",
+			"type": "number_card",
+			"data": {"number_card_name": name, "col": 2 if i < 4 else 4},
+		}
+		for i, name in enumerate(card_names)
+	]
+	# Insert after first header if present
+	if content and content[0].get("type") == "header":
+		content = [content[0]] + nc_blocks + content[1:]
+	else:
+		content = nc_blocks + content
+	ws.content = json.dumps(content)
+	ws.save(ignore_permissions=True)
