@@ -47,7 +47,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Draft\\nProvisioning\\nActive\\nSuspended\\nFailed\\nDeleted",
+   "options": "Draft\nProvisioning\nActive\nSuspended\nFailed\nDeleted",
    "default": "Draft",
    "in_list_view": 1
   },

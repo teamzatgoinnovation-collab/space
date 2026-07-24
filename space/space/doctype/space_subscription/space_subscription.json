@@ -35,7 +35,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Active\\nTrial\\nSuspended\\nCancelled\\nExpired",
+   "options": "Active\nTrial\nSuspended\nCancelled\nExpired",
    "default": "Active",
    "in_list_view": 1
   },
@@ -43,7 +43,7 @@
    "fieldname": "payment_status",
    "fieldtype": "Select",
    "label": "Payment Status",
-   "options": "Free\\nTrial\\nUnpaid\\nPaid",
+   "options": "Free\nTrial\nUnpaid\nPaid",
    "default": "Free",
    "in_list_view": 1
   },

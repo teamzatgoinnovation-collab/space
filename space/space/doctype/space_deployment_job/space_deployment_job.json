@@ -36,7 +36,7 @@
    "fieldname": "job_type",
    "fieldtype": "Select",
    "label": "Job Type",
-   "options": "Create\\nSuspend\\nResume\\nDelete\\nUpdate\\nBackup\\nRestore",
+   "options": "Create\nSuspend\nResume\nDelete\nUpdate\nBackup\nRestore",
    "reqd": 1,
    "in_list_view": 1
   },
@@ -44,7 +44,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Queued\\nRunning\\nSucceeded\\nFailed",
+   "options": "Queued\nRunning\nSucceeded\nFailed",
    "default": "Queued",
    "in_list_view": 1
   },

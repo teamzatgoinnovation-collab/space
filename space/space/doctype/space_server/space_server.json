@@ -48,7 +48,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Active\\nMaintenance\\nOffline",
+   "options": "Active\nMaintenance\nOffline",
    "default": "Active",
    "in_list_view": 1
   },
@@ -56,7 +56,7 @@
    "fieldname": "health",
    "fieldtype": "Select",
    "label": "Health",
-   "options": "Unknown\\nHealthy\\nDegraded\\nCritical",
+   "options": "Unknown\nHealthy\nDegraded\nCritical",
    "default": "Unknown",
    "in_list_view": 1
   },
@@ -94,7 +94,7 @@
    "fieldname": "auth_method",
    "fieldtype": "Select",
    "label": "Authentication Method",
-   "options": "Private Key\\nPassword",
+   "options": "Private Key\nPassword",
    "default": "Private Key"
   },
   {
