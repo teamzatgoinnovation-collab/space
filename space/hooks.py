@@ -18,7 +18,7 @@ add_to_apps_screen = [
 		"name": "space",
 		"logo": "/assets/space/images/space.svg",
 		"title": "Space",
-		"route": "/app/cloud-manager",
+		"route": "/app/space-cloud",
 	}
 ]
 

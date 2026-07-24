@@ -14,6 +14,23 @@
     {
       "hidden": 0,
       "is_query_report": 0,
+      "label": "Workbench",
+      "link_count": 1,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Cloud",
+      "link_to": "space-cloud",
+      "link_type": "Page",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
       "label": "Core",
       "link_count": 5,
       "onboard": 0,
@@ -112,6 +129,12 @@
   "roles": [],
   "sequence_id": 1.0,
   "shortcuts": [
+    {
+      "color": "Blue",
+      "label": "Space Cloud",
+      "link_to": "space-cloud",
+      "type": "Page"
+    },
     {
       "color": "Blue",
       "doc_view": "List",
