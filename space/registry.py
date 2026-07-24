@@ -72,8 +72,24 @@ def dispatch_job(job_type: str, **kwargs):
 
 
 def _merge_hook_dicts(hook_name: str) -> dict[str, str]:
+	"""Frappe returns dict hooks as {key: [value, ...]} or a list of dicts."""
 	merged: dict[str, str] = {}
-	for entry in frappe.get_hooks(hook_name) or []:
-		if isinstance(entry, dict):
-			merged.update({str(k): str(v) for k, v in entry.items()})
-	return merged
+	raw = frappe.get_hooks(hook_name) or {}
+
+	if isinstance(raw, dict):
+		for key, val in raw.items():
+			merged[str(key)] = _first_str(val)
+		return {k: v for k, v in merged.items() if v}
+
+	if isinstance(raw, (list, tuple)):
+		for entry in raw:
+			if isinstance(entry, dict):
+				for key, val in entry.items():
+					merged[str(key)] = _first_str(val)
+	return {k: v for k, v in merged.items() if v}
+
+
+def _first_str(val: Any) -> str:
+	if isinstance(val, (list, tuple)):
+		return str(val[0]) if val else ""
+	return str(val) if val is not None else ""
