@@ -298,7 +298,7 @@ def migrate_site(server_name: str | None, site: str) -> dict[str, Any]:
 
 
 def set_maintenance(server_name: str | None, site: str, on: bool) -> dict[str, Any]:
-	val = "1" if on else "0"
+	val = "on" if on else "off"
 	return run_on_bench(
 		server_name,
 		["bench", "--site", _assert_site(site), "set-maintenance-mode", val],
@@ -308,10 +308,8 @@ def set_maintenance(server_name: str | None, site: str, on: bool) -> dict[str, A
 
 def drop_site(server_name: str | None, site: str, db_root_password: str | None = None) -> dict[str, Any]:
 	site = _assert_site(site)
-	db_root = db_root_password or os.environ.get("MYSQL_ROOT_PASSWORD") or os.environ.get("DO_DB_ROOT_PASSWORD")
-	args = ["bench", "drop-site", site, "--force"]
-	if db_root:
-		args += ["--db-root-password", db_root]
+	db_root = _resolve_db_root_password(db_root_password)
+	args = ["bench", "drop-site", site, "--force", "--no-backup", "--db-root-password", db_root]
 	return run_on_bench(server_name, args, timeout_s=30 * 60)
 
 
