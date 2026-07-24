@@ -164,6 +164,7 @@ NUMBER_CARDS = [
 	{
 		"name": "Space Total Customers",
 		"label": "Customers",
+		"type": "Document Type",
 		"document_type": "Space Customer",
 		"function": "Count",
 		"filters_json": "[]",
@@ -171,6 +172,7 @@ NUMBER_CARDS = [
 	{
 		"name": "Space Total Servers",
 		"label": "Servers",
+		"type": "Document Type",
 		"document_type": "Space Server",
 		"function": "Count",
 		"filters_json": "[]",
@@ -178,6 +180,7 @@ NUMBER_CARDS = [
 	{
 		"name": "Space Total Sites",
 		"label": "Sites",
+		"type": "Document Type",
 		"document_type": "Space Site",
 		"function": "Count",
 		"filters_json": '[["Space Site","status","!=","Deleted"]]',
@@ -185,6 +188,7 @@ NUMBER_CARDS = [
 	{
 		"name": "Space Active Sites",
 		"label": "Active Sites",
+		"type": "Document Type",
 		"document_type": "Space Site",
 		"function": "Count",
 		"filters_json": '[["Space Site","status","=","Active"]]',
@@ -192,6 +196,7 @@ NUMBER_CARDS = [
 	{
 		"name": "Space Failed Jobs",
 		"label": "Failed Jobs",
+		"type": "Document Type",
 		"document_type": "Space Deployment Job",
 		"function": "Count",
 		"filters_json": '[["Space Deployment Job","status","=","Failed"]]',
