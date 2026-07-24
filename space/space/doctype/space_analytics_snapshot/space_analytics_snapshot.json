@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "creation": "2026-07-24 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "snapshot_date",
+  "revenue",
+  "mrr",
+  "arr",
+  "new_customers",
+  "active_customers",
+  "churn",
+  "deployments",
+  "marketplace_downloads",
+  "top_apps_json",
+  "server_usage_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "snapshot_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "revenue",
+   "fieldtype": "Currency",
+   "label": "Revenue",
+   "default": "0"
+  },
+  {
+   "fieldname": "mrr",
+   "fieldtype": "Currency",
+   "label": "MRR",
+   "default": "0"
+  },
+  {
+   "fieldname": "arr",
+   "fieldtype": "Currency",
+   "label": "ARR",
+   "default": "0"
+  },
+  {
+   "fieldname": "new_customers",
+   "fieldtype": "Int",
+   "label": "New Customers",
+   "default": "0"
+  },
+  {
+   "fieldname": "active_customers",
+   "fieldtype": "Int",
+   "label": "Active Customers",
+   "default": "0"
+  },
+  {
+   "fieldname": "churn",
+   "fieldtype": "Float",
+   "label": "Churn %",
+   "default": "0"
+  },
+  {
+   "fieldname": "deployments",
+   "fieldtype": "Int",
+   "label": "Deployments",
+   "default": "0"
+  },
+  {
+   "fieldname": "marketplace_downloads",
+   "fieldtype": "Int",
+   "label": "Marketplace Downloads",
+   "default": "0"
+  },
+  {
+   "fieldname": "top_apps_json",
+   "fieldtype": "Code",
+   "label": "Top Apps",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "server_usage_json",
+   "fieldtype": "Code",
+   "label": "Server Usage",
+   "options": "JSON"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-24 18:00:00.000000",
+ "module": "Space",
+ "name": "Space Analytics Snapshot",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Space Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Billing Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Readonly Auditor",
+   "create": 0,
+   "read": 1,
+   "write": 0,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Space Operator",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0,
+ "autoname": "field:snapshot_date"
+}

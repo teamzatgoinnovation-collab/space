@@ -1,6 +1,6 @@
 {
   "charts": [],
-  "content": "[{\"id\":\"hdr1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Cloud Manager</b></span>\",\"col\":12}},{\"id\":\"spc1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"card1\",\"type\":\"card\",\"data\":{\"card_name\":\"Sites\",\"col\":4}},{\"id\":\"card2\",\"type\":\"card\",\"data\":{\"card_name\":\"Infrastructure\",\"col\":4}},{\"id\":\"card3\",\"type\":\"card\",\"data\":{\"card_name\":\"Billing\",\"col\":4}}]",
+  "content": "[{\"id\": \"hdr1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Cloud Manager</b></span>\", \"col\": 12}}, {\"id\": \"spc1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"card1\", \"type\": \"card\", \"data\": {\"card_name\": \"Core\", \"col\": 4}}, {\"id\": \"card2\", \"type\": \"card\", \"data\": {\"card_name\": \"Framework\", \"col\": 4}}]",
   "creation": "2026-07-24 00:00:00.000000",
   "custom_blocks": [],
   "docstatus": 0,
@@ -14,28 +14,10 @@
     {
       "hidden": 0,
       "is_query_report": 0,
-      "label": "Sites",
-      "link_count": 3,
+      "label": "Core",
+      "link_count": 5,
       "onboard": 0,
       "type": "Card Break"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Space Site",
-      "link_to": "Space Site",
-      "link_type": "DocType",
-      "onboard": 1,
-      "type": "Link"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Space Deployment Job",
-      "link_to": "Space Deployment Job",
-      "link_type": "DocType",
-      "onboard": 0,
-      "type": "Link"
     },
     {
       "hidden": 0,
@@ -43,42 +25,8 @@
       "label": "Space Customer",
       "link_to": "Space Customer",
       "link_type": "DocType",
-      "onboard": 0,
-      "type": "Link"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Infrastructure",
-      "link_count": 2,
-      "onboard": 0,
-      "type": "Card Break"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Space Server",
-      "link_to": "Space Server",
-      "link_type": "DocType",
       "onboard": 1,
       "type": "Link"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Space Activity Log",
-      "link_to": "Space Activity Log",
-      "link_type": "DocType",
-      "onboard": 0,
-      "type": "Link"
-    },
-    {
-      "hidden": 0,
-      "is_query_report": 0,
-      "label": "Billing",
-      "link_count": 3,
-      "onboard": 0,
-      "type": "Card Break"
     },
     {
       "hidden": 0,
@@ -94,6 +42,50 @@
       "is_query_report": 0,
       "label": "Space Subscription",
       "link_to": "Space Subscription",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Provider",
+      "link_to": "Space Provider",
+      "link_type": "DocType",
+      "onboard": 1,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Job",
+      "link_to": "Space Job",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Framework",
+      "link_count": 3,
+      "onboard": 0,
+      "type": "Card Break"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Resource",
+      "link_to": "Space Resource",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Activity Log",
+      "link_to": "Space Activity Log",
       "link_type": "DocType",
       "onboard": 0,
       "type": "Link"

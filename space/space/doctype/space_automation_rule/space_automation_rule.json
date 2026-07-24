@@ -1,0 +1,97 @@
+{
+ "actions": [],
+ "creation": "2026-07-24 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "trigger_event",
+  "actions",
+  "days_before",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "trigger_event",
+   "fieldtype": "Select",
+   "label": "Trigger",
+   "options": "Trial Ending\nTrial Ended\nBackup Failed\nDeployment Failed\nSubscription Expired\nSite Suspended",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Small Text",
+   "label": "Actions",
+   "description": "notify_customer,notify_admin,suspend_site,retry_backup,send_reminder"
+  },
+  {
+   "fieldname": "days_before",
+   "fieldtype": "Int",
+   "label": "Days Before",
+   "default": "3"
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1",
+   "in_list_view": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-24 18:00:00.000000",
+ "module": "Space",
+ "name": "Space Automation Rule",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Space Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Space Operator",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Readonly Auditor",
+   "create": 0,
+   "read": 1,
+   "write": 0,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "autoname": "hash"
+}

@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="space",
-    version="0.1.0",
+    version="0.5.0",
     description="ZatGo Space",
     author="ZatGo Innovation",
     packages=find_packages(),

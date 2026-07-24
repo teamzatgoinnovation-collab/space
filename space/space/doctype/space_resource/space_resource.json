@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-07-24 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "resource_type",
+  "title",
+  "status",
+  "provider",
+  "customer",
+  "external_id",
+  "reference_doctype",
+  "reference_name",
+  "meta_json"
+ ],
+ "fields": [
+  {"fieldname": "resource_type", "fieldtype": "Data", "label": "Resource Type", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "title", "fieldtype": "Data", "label": "Title", "in_list_view": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Draft\nActive\nSuspended\nDeleted\nFailed", "default": "Draft", "in_list_view": 1},
+  {"fieldname": "provider", "fieldtype": "Link", "label": "Provider", "options": "Space Provider"},
+  {"fieldname": "customer", "fieldtype": "Link", "label": "Customer", "options": "Space Customer"},
+  {"fieldname": "external_id", "fieldtype": "Data", "label": "External ID"},
+  {"fieldname": "reference_doctype", "fieldtype": "Link", "label": "Reference DocType", "options": "DocType"},
+  {"fieldname": "reference_name", "fieldtype": "Dynamic Link", "label": "Reference Name", "options": "reference_doctype"},
+  {"fieldname": "meta_json", "fieldtype": "Code", "label": "Meta JSON", "options": "JSON"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-24 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Space",
+ "name": "Space Resource",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Space Admin", "share": 1, "write": 1},
+  {"create": 0, "delete": 0, "email": 0, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Space Operator", "share": 0, "write": 1},
+  {"create": 0, "delete": 0, "email": 0, "export": 0, "print": 0, "read": 1, "report": 0, "role": "Space Customer", "share": 0, "write": 0}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

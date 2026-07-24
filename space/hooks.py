@@ -1,12 +1,12 @@
-"""Frappe hooks for Space control plane."""
+"""Frappe hooks for Space — generic control-plane framework."""
 
 app_name = "space"
 app_title = "Space"
 app_publisher = "ZatGo Innovation"
-app_description = "Frappe Cloud-like control plane for ERPNext sites"
+app_description = "General-purpose control-plane framework (providers, resources, jobs, plans)"
 app_email = "engineering@zatgo.local"
 app_license = "mit"
-app_version = "0.2.0"
+app_version = "0.5.0"
 
 required_apps = ["frappe"]
 
@@ -22,16 +22,16 @@ add_to_apps_screen = [
 	}
 ]
 
+# Framework hook contract (apps fill these via their own hooks.py)
+# space_provider_types / space_resource_types / space_job_handlers
+# space_dashboard_cards / space_api_namespaces
+
 scheduler_events = {
-	"hourly": [
-		"space.jobs.monitoring.refresh_all_health",
-	],
 	"daily": [
-		"space.jobs.ssl.check_ssl_all",
 		"space.jobs.billing.process_subscription_expiry",
-		"space.jobs.backup.cleanup_old_backups",
-		"space.jobs.backup.enqueue_scheduled_backups",
-		"space.jobs.monitoring.refresh_all_health",
+		"space.services.licenses.expire_licenses",
+		"space.services.automation.run_daily_automation",
+		"space.services.analytics.capture_daily_analytics",
 	],
 	"weekly": [
 		"space.jobs.billing.record_weekly_usage",

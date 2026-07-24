@@ -1,6 +1,6 @@
 [project]
 name = "space"
-version = "0.1.0"
+version = "0.5.0"
 description = "ZatGo Space — Frappe Cloud-like control plane"
 authors = [{ name = "ZatGo Innovation" }]
 requires-python = ">=3.11"

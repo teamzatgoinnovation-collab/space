@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:provider_name",
+ "creation": "2026-07-24 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "provider_name",
+  "title",
+  "provider_type",
+  "status",
+  "is_default",
+  "capabilities",
+  "config_json",
+  "notes"
+ ],
+ "fields": [
+  {"fieldname": "provider_name", "fieldtype": "Data", "label": "Provider Name", "reqd": 1, "unique": 1},
+  {"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+  {"fieldname": "provider_type", "fieldtype": "Data", "label": "Provider Type", "reqd": 1, "default": "docker_bench"},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Active\nInactive\nMaintenance", "default": "Active"},
+  {"fieldname": "is_default", "fieldtype": "Check", "label": "Is Default", "default": 0},
+  {"fieldname": "capabilities", "fieldtype": "Small Text", "label": "Capabilities"},
+  {"fieldname": "config_json", "fieldtype": "Code", "label": "Config JSON", "options": "JSON"},
+  {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-24 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Space",
+ "name": "Space Provider",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Space Admin", "share": 1, "write": 1},
+  {"create": 0, "delete": 0, "email": 0, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Space Operator", "share": 0, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

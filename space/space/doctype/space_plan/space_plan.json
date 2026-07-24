@@ -21,7 +21,16 @@
   "ram_mb",
   "apps_section",
   "allowed_apps",
-  "features"
+  "features",
+  "entitlements_section",
+  "allow_api_access",
+  "allow_custom_domains",
+  "allow_backups",
+  "allow_monitoring",
+  "allow_marketplace",
+  "priority_support",
+  "max_apps",
+  "max_custom_domains"
  ],
  "fields": [
   {
@@ -123,10 +132,65 @@
    "fieldname": "features",
    "fieldtype": "Small Text",
    "label": "Features"
+  },
+  {
+   "fieldname": "entitlements_section",
+   "fieldtype": "Section Break",
+   "label": "Entitlements"
+  },
+  {
+   "fieldname": "allow_api_access",
+   "fieldtype": "Check",
+   "label": "API Access",
+   "default": "1"
+  },
+  {
+   "fieldname": "allow_custom_domains",
+   "fieldtype": "Check",
+   "label": "Custom Domains",
+   "default": "0"
+  },
+  {
+   "fieldname": "allow_backups",
+   "fieldtype": "Check",
+   "label": "Backups",
+   "default": "1"
+  },
+  {
+   "fieldname": "allow_monitoring",
+   "fieldtype": "Check",
+   "label": "Monitoring",
+   "default": "1"
+  },
+  {
+   "fieldname": "allow_marketplace",
+   "fieldtype": "Check",
+   "label": "Marketplace Access",
+   "default": "1"
+  },
+  {
+   "fieldname": "priority_support",
+   "fieldtype": "Check",
+   "label": "Priority Support",
+   "default": "0"
+  },
+  {
+   "fieldname": "max_apps",
+   "fieldtype": "Int",
+   "label": "Max Marketplace Apps",
+   "default": "10",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "max_custom_domains",
+   "fieldtype": "Int",
+   "label": "Max Custom Domains",
+   "default": "0",
+   "non_negative": 1
   }
  ],
  "links": [],
- "modified": "2026-07-24 00:00:00.000000",
+ "modified": "2026-07-24 18:00:00.000000",
  "module": "Space",
  "name": "Space Plan",
  "naming_rule": "By fieldname",

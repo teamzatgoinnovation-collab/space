@@ -1,6 +1,8 @@
-"""Seed roles, plans, settings, and default server after install/migrate."""
+"""Seed core roles, settings, plans, and default provider after install/migrate."""
 
 from __future__ import annotations
+
+import json
 
 import frappe
 
@@ -12,6 +14,8 @@ ROLES = (
 	"Billing Manager",
 	"Support Engineer",
 	"Readonly Auditor",
+	"Marketplace Manager",
+	"Cloud Infra Admin",
 )
 
 DEFAULT_PLANS = [
@@ -62,6 +66,50 @@ DEFAULT_PLANS = [
 	},
 ]
 
+DEFAULT_TICKET_CATEGORIES = [
+	"Provisioning",
+	"Billing",
+	"Marketplace",
+	"Performance",
+	"Security",
+	"Other",
+]
+
+CORE_NUMBER_CARDS = [
+	{
+		"name": "Space Total Customers",
+		"label": "Customers",
+		"type": "Document Type",
+		"document_type": "Space Customer",
+		"function": "Count",
+		"filters_json": "[]",
+	},
+	{
+		"name": "Space Trials",
+		"label": "Trials",
+		"type": "Document Type",
+		"document_type": "Space Subscription",
+		"function": "Count",
+		"filters_json": '[["Space Subscription","status","=","Trial"]]',
+	},
+	{
+		"name": "Space Providers",
+		"label": "Providers",
+		"type": "Document Type",
+		"document_type": "Space Provider",
+		"function": "Count",
+		"filters_json": "[]",
+	},
+	{
+		"name": "Space Jobs Failed",
+		"label": "Failed Core Jobs",
+		"type": "Document Type",
+		"document_type": "Space Job",
+		"function": "Count",
+		"filters_json": '[["Space Job","status","=","Failed"]]',
+	},
+]
+
 
 def after_install():
 	try:
@@ -80,7 +128,7 @@ def after_migrate():
 			_ensure_roles()
 			_seed_settings()
 			_seed_plans()
-			_seed_default_server()
+			_seed_default_provider()
 			frappe.db.commit()
 		except Exception:
 			frappe.log_error(title="Space after_migrate core seed failed")
@@ -91,9 +139,9 @@ def _seed_all():
 	_ensure_roles()
 	_seed_settings()
 	_seed_plans()
-	_seed_default_server()
-	_seed_number_cards()
-	_seed_workspace_links()
+	_seed_default_provider()
+	_seed_ticket_categories()
+	_seed_core_number_cards()
 	frappe.db.commit()
 
 
@@ -133,9 +181,6 @@ def _seed_settings():
 		if not doc.get(key):
 			doc.set(key, val)
 			changed = True
-	if not doc.prefer_server and frappe.db.exists("Space Server", "primary-do"):
-		doc.prefer_server = "primary-do"
-		changed = True
 	if changed:
 		doc.save(ignore_permissions=True)
 
@@ -168,101 +213,41 @@ def _seed_plans():
 			doc.insert(ignore_permissions=True)
 
 
-def _seed_default_server():
-	if not frappe.db.exists("DocType", "Space Server"):
+def _seed_default_provider():
+	if not frappe.db.exists("DocType", "Space Provider"):
 		return
-	name = "primary-do"
-	if frappe.db.exists("Space Server", name):
+	name = "docker-bench-primary"
+	if frappe.db.exists("Space Provider", name):
 		return
 	frappe.get_doc(
 		{
-			"doctype": "Space Server",
-			"server_name": name,
-			"title": "DigitalOcean Primary",
-			"ip_address": "157.230.8.164",
-			"ssh_user": "root",
-			"ssh_port": 22,
-			"auth_method": "Private Key",
-			"docker_host": "unix:///var/run/docker.sock",
-			"backend_container": "frappe_docker-backend-1",
-			"cpu_cores": 1,
-			"ram_mb": 2048,
-			"disk_mb": 49152,
-			"max_sites": 50,
-			"weight": 1,
-			"ssl_mode": "Wildcard",
+			"doctype": "Space Provider",
+			"provider_name": name,
+			"title": "DigitalOcean Docker Bench",
+			"provider_type": "docker_bench",
 			"status": "Active",
-			"health": "Unknown",
 			"is_default": 1,
+			"capabilities": "bench\ndocker\nssh\nsites",
+			"config_json": json.dumps({"server": "primary-do", "host": "157.230.8.164"}),
 		}
 	).insert(ignore_permissions=True)
 
 
-NUMBER_CARDS = [
-	{
-		"name": "Space Total Customers",
-		"label": "Customers",
-		"type": "Document Type",
-		"document_type": "Space Customer",
-		"function": "Count",
-		"filters_json": "[]",
-	},
-	{
-		"name": "Space Total Servers",
-		"label": "Servers",
-		"type": "Document Type",
-		"document_type": "Space Server",
-		"function": "Count",
-		"filters_json": "[]",
-	},
-	{
-		"name": "Space Total Sites",
-		"label": "Sites",
-		"type": "Document Type",
-		"document_type": "Space Site",
-		"function": "Count",
-		"filters_json": '[["Space Site","status","!=","Deleted"]]',
-	},
-	{
-		"name": "Space Active Sites",
-		"label": "Active Sites",
-		"type": "Document Type",
-		"document_type": "Space Site",
-		"function": "Count",
-		"filters_json": '[["Space Site","status","=","Active"]]',
-	},
-	{
-		"name": "Space Failed Jobs",
-		"label": "Failed Jobs",
-		"type": "Document Type",
-		"document_type": "Space Deployment Job",
-		"function": "Count",
-		"filters_json": '[["Space Deployment Job","status","=","Failed"]]',
-	},
-	{
-		"name": "Space Running Jobs",
-		"label": "Running Jobs",
-		"type": "Document Type",
-		"document_type": "Space Deployment Job",
-		"function": "Count",
-		"filters_json": '[["Space Deployment Job","status","in",["Queued","Running"]]]',
-	},
-	{
-		"name": "Space Trials",
-		"label": "Trials",
-		"type": "Document Type",
-		"document_type": "Space Subscription",
-		"function": "Count",
-		"filters_json": '[["Space Subscription","status","=","Trial"]]',
-	},
-]
+def _seed_ticket_categories():
+	if not frappe.db.exists("DocType", "Space Ticket Category"):
+		return
+	for cat in DEFAULT_TICKET_CATEGORIES:
+		if frappe.db.exists("Space Ticket Category", cat):
+			continue
+		frappe.get_doc({"doctype": "Space Ticket Category", "category_name": cat}).insert(
+			ignore_permissions=True
+		)
 
 
-def _seed_number_cards():
+def _seed_core_number_cards():
 	if not frappe.db.exists("DocType", "Number Card"):
 		return
-	card_names = []
-	for spec in NUMBER_CARDS:
+	for spec in CORE_NUMBER_CARDS:
 		wanted = spec["name"]
 		if frappe.db.exists("Number Card", wanted):
 			doc = frappe.get_doc("Number Card", wanted)
@@ -272,9 +257,8 @@ def _seed_number_cards():
 			doc.is_public = 1
 			doc.module = "Space"
 			doc.save(ignore_permissions=True)
-			card_names.append(doc.name)
 		else:
-			doc = frappe.get_doc(
+			frappe.get_doc(
 				{
 					"doctype": "Number Card",
 					**spec,
@@ -282,76 +266,4 @@ def _seed_number_cards():
 					"module": "Space",
 					"show_percentage_stats": 0,
 				}
-			)
-			doc.insert(ignore_permissions=True)
-			card_names.append(doc.name)
-	frappe.db.commit()
-
-	if not frappe.db.exists("Workspace", "Cloud Manager"):
-		return
-	ws = frappe.get_doc("Workspace", "Cloud Manager")
-	if not ws.get("type"):
-		ws.type = "Workspace"
-	ws.set("number_cards", [])
-	for name in card_names:
-		if frappe.db.exists("Number Card", name):
-			ws.append("number_cards", {"number_card_name": name, "label": name})
-	import json
-
-	try:
-		content = json.loads(ws.content or "[]")
-	except Exception:
-		content = []
-	content = [b for b in content if b.get("type") != "number_card"]
-	nc_blocks = [
-		{
-			"id": f"nc{i}",
-			"type": "number_card",
-			"data": {"number_card_name": name, "col": 2 if i < 4 else 4},
-		}
-		for i, name in enumerate(card_names)
-		if frappe.db.exists("Number Card", name)
-	]
-	if content and content[0].get("type") == "header":
-		content = [content[0]] + nc_blocks + content[1:]
-	else:
-		content = nc_blocks + content
-	ws.content = json.dumps(content)
-	ws.flags.ignore_links = True
-	ws.flags.ignore_mandatory = True
-	ws.save(ignore_permissions=True)
-
-
-EXTRA_LINKS = [
-	("Ops", "Card Break", None),
-	("Space Backup", "Link", "Space Backup"),
-	("Space Domain", "Link", "Space Domain"),
-	("Space Notification", "Link", "Space Notification"),
-	("Space Metric Snapshot", "Link", "Space Metric Snapshot"),
-	("Space Audit Log", "Link", "Space Audit Log"),
-	("Billing Extra", "Card Break", None),
-	("Space Invoice", "Link", "Space Invoice"),
-	("Space Usage", "Link", "Space Usage"),
-	("Space Payment History", "Link", "Space Payment History"),
-]
-
-
-def _seed_workspace_links():
-	if not frappe.db.exists("Workspace", "Cloud Manager"):
-		return
-	ws = frappe.get_doc("Workspace", "Cloud Manager")
-	existing = {(l.label, l.type) for l in (ws.links or [])}
-	changed = False
-	for label, typ, link_to in EXTRA_LINKS:
-		if (label, typ) in existing:
-			continue
-		row = {"label": label, "type": typ, "hidden": 0, "onboard": 0}
-		if typ == "Link":
-			row.update({"link_type": "DocType", "link_to": link_to})
-		elif typ == "Card Break":
-			row["link_count"] = 0
-		ws.append("links", row)
-		changed = True
-	if changed:
-		ws.flags.ignore_links = True
-		ws.save(ignore_permissions=True)
+			).insert(ignore_permissions=True)

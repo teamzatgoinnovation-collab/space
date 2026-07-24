@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-07-24 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "job_type",
+  "status",
+  "progress",
+  "provider",
+  "resource",
+  "reference_doctype",
+  "reference_name",
+  "started_at",
+  "finished_at",
+  "output",
+  "error_log"
+ ],
+ "fields": [
+  {"fieldname": "job_type", "fieldtype": "Data", "label": "Job Type", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Queued\nRunning\nSuccess\nFailed\nCancelled", "default": "Queued", "in_list_view": 1},
+  {"fieldname": "progress", "fieldtype": "Int", "label": "Progress", "default": 0},
+  {"fieldname": "provider", "fieldtype": "Link", "label": "Provider", "options": "Space Provider"},
+  {"fieldname": "resource", "fieldtype": "Link", "label": "Resource", "options": "Space Resource"},
+  {"fieldname": "reference_doctype", "fieldtype": "Link", "label": "Reference DocType", "options": "DocType"},
+  {"fieldname": "reference_name", "fieldtype": "Dynamic Link", "label": "Reference Name", "options": "reference_doctype"},
+  {"fieldname": "started_at", "fieldtype": "Datetime", "label": "Started At"},
+  {"fieldname": "finished_at", "fieldtype": "Datetime", "label": "Finished At"},
+  {"fieldname": "output", "fieldtype": "Long Text", "label": "Output"},
+  {"fieldname": "error_log", "fieldtype": "Long Text", "label": "Error Log"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-24 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Space",
+ "name": "Space Job",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Space Admin", "share": 1, "write": 1},
+  {"create": 1, "delete": 0, "email": 0, "export": 1, "print": 1, "read": 1, "report": 1, "role": "Space Operator", "share": 0, "write": 1},
+  {"create": 0, "delete": 0, "email": 0, "export": 0, "print": 0, "read": 1, "report": 0, "role": "Space Customer", "share": 0, "write": 0}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

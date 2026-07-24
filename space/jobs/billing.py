@@ -128,7 +128,9 @@ def generate_monthly_invoices():
 
 
 def record_weekly_usage():
-	"""Weekly usage rollup from site counters."""
+	"""Weekly usage rollup from site counters (requires space_cloud Space Site)."""
+	if not frappe.db.exists("DocType", "Space Site"):
+		return
 	period_end = getdate(today())
 	period_start = add_days(period_end, -7)
 	for site_name in frappe.get_all(

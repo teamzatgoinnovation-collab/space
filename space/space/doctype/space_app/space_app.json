@@ -1,0 +1,263 @@
+{
+ "actions": [],
+ "creation": "2026-07-24 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "app_name",
+  "slug",
+  "version",
+  "category",
+  "status",
+  "developer",
+  "description",
+  "repository",
+  "branch",
+  "git_commit",
+  "license",
+  "price",
+  "icon",
+  "banner",
+  "screenshots",
+  "dependencies",
+  "compatible_erp_version",
+  "supported_space_version",
+  "package_name",
+  "checksum_sha256",
+  "is_featured",
+  "downloads",
+  "avg_rating",
+  "rating_count",
+  "release_notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "Name",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "slug",
+   "fieldtype": "Data",
+   "label": "Slug",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "version",
+   "fieldtype": "Data",
+   "label": "Version",
+   "default": "0.1.0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "ERP\nHR\nCRM\nFinance\nInventory\nProductivity\nAI\nIntegration\nOther",
+   "default": "Other",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nPending Approval\nPublished\nHidden\nRejected",
+   "default": "Draft",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "developer",
+   "fieldtype": "Link",
+   "label": "Developer",
+   "options": "Space Developer"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
+  },
+  {
+   "fieldname": "repository",
+   "fieldtype": "Data",
+   "label": "Repository"
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Data",
+   "label": "Branch",
+   "default": "main"
+  },
+  {
+   "fieldname": "git_commit",
+   "fieldtype": "Data",
+   "label": "Git Commit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "license",
+   "fieldtype": "Data",
+   "label": "License",
+   "default": "mit"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "label": "Price",
+   "default": "0"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Attach Image",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "banner",
+   "fieldtype": "Attach Image",
+   "label": "Banner"
+  },
+  {
+   "fieldname": "screenshots",
+   "fieldtype": "Table",
+   "label": "Screenshots",
+   "options": "Space App Screenshot"
+  },
+  {
+   "fieldname": "dependencies",
+   "fieldtype": "Table",
+   "label": "Dependencies",
+   "options": "Space App Dependency"
+  },
+  {
+   "fieldname": "compatible_erp_version",
+   "fieldtype": "Data",
+   "label": "Compatible ERP Version",
+   "default": "v15"
+  },
+  {
+   "fieldname": "supported_space_version",
+   "fieldtype": "Data",
+   "label": "Supported Space Version",
+   "default": "0.3"
+  },
+  {
+   "fieldname": "package_name",
+   "fieldtype": "Data",
+   "label": "Bench Package",
+   "description": "Frappe app folder name"
+  },
+  {
+   "fieldname": "checksum_sha256",
+   "fieldtype": "Data",
+   "label": "Checksum SHA256"
+  },
+  {
+   "fieldname": "is_featured",
+   "fieldtype": "Check",
+   "label": "Featured",
+   "default": "0"
+  },
+  {
+   "fieldname": "downloads",
+   "fieldtype": "Int",
+   "label": "Downloads",
+   "default": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "avg_rating",
+   "fieldtype": "Float",
+   "label": "Average Rating",
+   "default": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rating_count",
+   "fieldtype": "Int",
+   "label": "Rating Count",
+   "default": "0",
+   "read_only": 1
+  },
+  {
+   "fieldname": "release_notes",
+   "fieldtype": "Text Editor",
+   "label": "Release Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-24 18:00:00.000000",
+ "module": "Space",
+ "name": "Space App",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Space Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Space Operator",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Marketplace Developer",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Space Customer",
+   "create": 0,
+   "read": 1,
+   "write": 0,
+   "delete": 0
+  },
+  {
+   "role": "Support Engineer",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Readonly Auditor",
+   "create": 0,
+   "read": 1,
+   "write": 0,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "autoname": "field:slug"
+}
