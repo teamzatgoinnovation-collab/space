@@ -10,13 +10,14 @@ from space.api.v1.response import customer_for_user, fail, ok, require_roles
 from space.jobs import monitoring as monitoring_jobs
 from space.jobs.lifecycle import enqueue_delete_site, enqueue_resume_site, enqueue_suspend_site
 from space.jobs.provision import enqueue_create_site
-from space.services import bench_client
+from space.services import audit, bench_client, rate_limit, server_pool
 from space.utils.site_naming import build_domain, validate_slug
 
 
 @frappe.whitelist(allow_guest=True)
 def list_catalog():
 	"""Public catalog: plans + bench apps + pool settings."""
+	rate_limit.check_rate_limit("catalog")
 	plans = []
 	for p in frappe.get_all(
 		"Space Plan",
@@ -89,8 +90,9 @@ def list_catalog():
 				"ramPoolMb": settings.ram_pool_mb or 0,
 				"diskPoolMb": settings.disk_pool_mb or 0,
 			},
-			"billing": {"mode": "free", "message": "Space Phase 1 — free subscriptions"},
+			"billing": {"mode": "status_only", "message": "Space Phase 2 — status-only billing (gateway disabled)"},
 			"controlPlane": "space",
+			"apiVersions": ["v1", "v2"],
 		}
 	)
 
@@ -162,13 +164,13 @@ def create_site(
 			).insert(ignore_permissions=True)
 		cust = cust_name
 
-	server = frappe.db.get_value("Space Server", {"is_default": 1, "status": "Active"}, "name")
-	if not server:
-		server = frappe.db.get_value("Space Server", {"status": "Active"}, "name")
-	if not server:
-		return fail("No active server", "NO_SERVER")
+	server = server_pool.select_server()
 
-	# Subscription (free)
+	# Subscription (free / trial status-only)
+	plan_doc = frappe.get_doc("Space Plan", plan)
+	trial_days = int(plan_doc.trial_days or 0)
+	payment_status = "Trial" if trial_days > 0 and float(plan_doc.monthly_price or 0) > 0 else "Free"
+	sub_status = "Trial" if payment_status == "Trial" else "Active"
 	sub = frappe.get_doc(
 		{
 			"doctype": "Space Subscription",
@@ -176,8 +178,11 @@ def create_site(
 			"plan": plan,
 			"start_date": today(),
 			"end_date": add_days(today(), 365),
-			"status": "Active",
-			"payment_status": "Free",
+			"renewal_date": add_days(today(), 365),
+			"trial_ends_on": add_days(today(), trial_days) if trial_days else None,
+			"grace_period_days": 3,
+			"status": sub_status,
+			"payment_status": payment_status,
 			"renewal": 0,
 		}
 	).insert(ignore_permissions=True)
@@ -247,7 +252,19 @@ def list_subscriptions():
 	rows = frappe.get_all(
 		"Space Subscription",
 		filters=filters,
-		fields=["name", "customer", "plan", "status", "payment_status", "start_date", "end_date", "renewal"],
+		fields=[
+			"name",
+			"customer",
+			"plan",
+			"status",
+			"payment_status",
+			"start_date",
+			"end_date",
+			"renewal",
+			"renewal_date",
+			"trial_ends_on",
+			"grace_period_days",
+		],
 		order_by="modified desc",
 	)
 	return ok(rows)
@@ -255,10 +272,13 @@ def list_subscriptions():
 
 def _ensure_site_access(doc, write: bool = False):
 	roles = set(frappe.get_roles())
-	if frappe.session.user == "Administrator" or roles.intersection({"System Manager", "Space Admin", "Space Operator"}):
+	if frappe.session.user == "Administrator" or roles.intersection(
+		{"System Manager", "Space Admin", "Space Operator", "Support Engineer"}
+	):
 		return
 	cust = customer_for_user()
 	if not cust or doc.customer != cust:
+		audit.log_audit("site_access_denied", result="Denied", ref_doctype="Space Site", ref_name=getattr(doc, "name", None))
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	if write and "Space Customer" not in roles:
 		# customers can trigger lifecycle on own sites in Phase 1

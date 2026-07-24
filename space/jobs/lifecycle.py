@@ -5,7 +5,7 @@ from __future__ import annotations
 import frappe
 from frappe.utils import now_datetime
 
-from space.services import bench_client
+from space.services import bench_client, notifications
 from space.utils.activity import log_activity
 
 
@@ -19,6 +19,8 @@ def _enqueue(site_name: str, job_type: str, method: str) -> dict:
 			"job_type": job_type,
 			"status": "Queued",
 			"progress": 0,
+			"estimated_minutes": 5,
+			"can_cancel": 1,
 		}
 	).insert(ignore_permissions=True)
 	site.job = job.name
@@ -89,16 +91,36 @@ def _run_simple(job_name: str, *, maintenance: bool, final_status: str):
 		job.status = "Succeeded"
 		job.progress = 100
 		job.finished_at = now_datetime()
+		job.can_cancel = 0
 		job.save(ignore_permissions=True)
 		frappe.db.commit()
 		log_activity(f"Site {final_status}", "Space Site", site.name)
+		if final_status == "Suspended":
+			notifications.notify(
+				title=f"Site suspended: {site.name}",
+				event_type="site_suspended",
+				message=site.domain or site.name,
+				customer=site.customer,
+				ref_doctype="Space Site",
+				ref_name=site.name,
+			)
 	except Exception as e:
 		job.reload()
 		job.status = "Failed"
 		job.error_log = frappe.get_traceback() or str(e)
 		job.finished_at = now_datetime()
+		job.can_retry = 1
+		job.can_cancel = 0
 		job.save(ignore_permissions=True)
 		frappe.db.commit()
+		notifications.notify(
+			title=f"Deployment failed: {site.name}",
+			event_type="deployment_failed",
+			message=str(e)[:500],
+			customer=site.customer,
+			ref_doctype="Space Deployment Job",
+			ref_name=job.name,
+		)
 		raise
 
 
@@ -130,15 +152,34 @@ def run_delete_site(deployment_job: str | None = None, job_name: str | None = No
 		job.status = "Succeeded"
 		job.progress = 100
 		job.finished_at = now_datetime()
+		job.can_cancel = 0
 		job.output = (job.output or "") + "\nDeleted"
 		job.save(ignore_permissions=True)
 		frappe.db.commit()
 		log_activity("Site deleted", "Space Site", site.name)
+		notifications.notify(
+			title=f"Site deleted: {site.name}",
+			event_type="site_deleted",
+			message=site.domain or site.name,
+			customer=site.customer,
+			ref_doctype="Space Site",
+			ref_name=site.name,
+		)
 	except Exception as e:
 		job.reload()
 		job.status = "Failed"
 		job.error_log = frappe.get_traceback() or str(e)
 		job.finished_at = now_datetime()
+		job.can_retry = 1
+		job.can_cancel = 0
 		job.save(ignore_permissions=True)
 		frappe.db.commit()
+		notifications.notify(
+			title=f"Deployment failed: {site.name}",
+			event_type="deployment_failed",
+			message=str(e)[:500],
+			customer=site.customer,
+			ref_doctype="Space Deployment Job",
+			ref_name=job.name,
+		)
 		raise

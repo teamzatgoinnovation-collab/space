@@ -5,27 +5,54 @@
  "engine": "InnoDB",
  "issingle": 1,
  "field_order": [
+  "portal_section",
   "domain_suffix",
   "portal_base_url",
   "allowed_origins",
-  "db_root_password",
+  "reserved_slugs",
+  "defaults_section",
+  "default_plan",
+  "default_apps",
   "pool_section",
   "ram_pool_mb",
   "disk_pool_mb",
-  "reserved_slugs",
-  "internal_token"
+  "server_selection",
+  "prefer_server",
+  "backup_section",
+  "backup_schedule",
+  "backup_retention_days",
+  "monitoring_section",
+  "monitoring_interval_minutes",
+  "email_section",
+  "email_notifications_enabled",
+  "notification_email",
+  "ssh_section",
+  "ssh_default_user",
+  "ssh_default_port",
+  "deployment_section",
+  "deployment_timeout_minutes",
+  "estimated_create_minutes",
+  "secrets_section",
+  "db_root_password",
+  "internal_token",
+  "rate_limit_per_minute"
  ],
  "fields": [
   {
+   "fieldname": "portal_section",
+   "fieldtype": "Section Break",
+   "label": "Portal & Domains"
+  },
+  {
    "fieldname": "domain_suffix",
    "fieldtype": "Data",
-   "label": "Domain Suffix",
+   "label": "Default Domain Suffix",
    "default": "zatgo.online"
   },
   {
    "fieldname": "portal_base_url",
    "fieldtype": "Data",
-   "label": "Portal Base URL",
+   "label": "Portal URL",
    "default": "https://portal.zatgo.online"
   },
   {
@@ -34,10 +61,26 @@
    "label": "Allowed Origins (CORS)"
   },
   {
-   "fieldname": "db_root_password",
-   "fieldtype": "Password",
-   "label": "Bench MariaDB Root Password",
-   "description": "Used by queue workers for bench new-site (when MYSQL_ROOT_PASSWORD is not in the worker env)"
+   "fieldname": "reserved_slugs",
+   "fieldtype": "Small Text",
+   "label": "Reserved Domains / Slugs"
+  },
+  {
+   "fieldname": "defaults_section",
+   "fieldtype": "Section Break",
+   "label": "Defaults"
+  },
+  {
+   "fieldname": "default_plan",
+   "fieldtype": "Link",
+   "label": "Default Plan",
+   "options": "Space Plan"
+  },
+  {
+   "fieldname": "default_apps",
+   "fieldtype": "Small Text",
+   "label": "Default Apps",
+   "description": "Comma-separated package names"
   },
   {
    "fieldname": "pool_section",
@@ -57,18 +100,125 @@
    "default": "102400"
   },
   {
-   "fieldname": "reserved_slugs",
-   "fieldtype": "Small Text",
-   "label": "Reserved Slugs"
+   "fieldname": "server_selection",
+   "fieldtype": "Select",
+   "label": "Server Selection",
+   "options": "Preferred\nRound Robin\nLeast Loaded",
+   "default": "Preferred"
+  },
+  {
+   "fieldname": "prefer_server",
+   "fieldtype": "Link",
+   "label": "Preferred Server",
+   "options": "Space Server"
+  },
+  {
+   "fieldname": "backup_section",
+   "fieldtype": "Section Break",
+   "label": "Backup Schedule"
+  },
+  {
+   "fieldname": "backup_schedule",
+   "fieldtype": "Select",
+   "label": "Backup Schedule",
+   "options": "Disabled\nDaily\nWeekly",
+   "default": "Daily"
+  },
+  {
+   "fieldname": "backup_retention_days",
+   "fieldtype": "Int",
+   "label": "Backup Retention (Days)",
+   "default": "14",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "monitoring_section",
+   "fieldtype": "Section Break",
+   "label": "Monitoring"
+  },
+  {
+   "fieldname": "monitoring_interval_minutes",
+   "fieldtype": "Int",
+   "label": "Monitoring Interval (Minutes)",
+   "default": "60",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "email_section",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
+  },
+  {
+   "fieldname": "email_notifications_enabled",
+   "fieldtype": "Check",
+   "label": "Email Notifications",
+   "default": "0"
+  },
+  {
+   "fieldname": "notification_email",
+   "fieldtype": "Data",
+   "label": "Ops Notification Email"
+  },
+  {
+   "fieldname": "ssh_section",
+   "fieldtype": "Section Break",
+   "label": "SSH Defaults"
+  },
+  {
+   "fieldname": "ssh_default_user",
+   "fieldtype": "Data",
+   "label": "SSH Default User",
+   "default": "root"
+  },
+  {
+   "fieldname": "ssh_default_port",
+   "fieldtype": "Int",
+   "label": "SSH Default Port",
+   "default": "22"
+  },
+  {
+   "fieldname": "deployment_section",
+   "fieldtype": "Section Break",
+   "label": "Deployment Defaults"
+  },
+  {
+   "fieldname": "deployment_timeout_minutes",
+   "fieldtype": "Int",
+   "label": "Deployment Timeout (Minutes)",
+   "default": "120"
+  },
+  {
+   "fieldname": "estimated_create_minutes",
+   "fieldtype": "Int",
+   "label": "Estimated Create (Minutes)",
+   "default": "15"
+  },
+  {
+   "fieldname": "secrets_section",
+   "fieldtype": "Section Break",
+   "label": "Secrets"
+  },
+  {
+   "fieldname": "db_root_password",
+   "fieldtype": "Password",
+   "label": "Bench MariaDB Root Password",
+   "description": "Used by queue workers for bench new-site (when MYSQL_ROOT_PASSWORD is not in the worker env)"
   },
   {
    "fieldname": "internal_token",
    "fieldtype": "Password",
    "label": "Internal API Token"
+  },
+  {
+   "fieldname": "rate_limit_per_minute",
+   "fieldtype": "Int",
+   "label": "API Rate Limit / Minute",
+   "default": "120",
+   "non_negative": 1
   }
  ],
  "links": [],
- "modified": "2026-07-24 00:00:00.000000",
+ "modified": "2026-07-24 12:00:00.000000",
  "module": "Space",
  "name": "Space Settings",
  "permissions": [

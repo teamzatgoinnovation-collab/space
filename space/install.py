@@ -5,7 +5,14 @@ from __future__ import annotations
 import frappe
 
 
-ROLES = ("Space Admin", "Space Operator", "Space Customer")
+ROLES = (
+	"Space Admin",
+	"Space Operator",
+	"Space Customer",
+	"Billing Manager",
+	"Support Engineer",
+	"Readonly Auditor",
+)
 
 DEFAULT_PLANS = [
 	{
@@ -68,7 +75,6 @@ def after_migrate():
 		_seed_all()
 	except Exception:
 		frappe.log_error(title="Space after_migrate seed failed")
-		# Do not block migrate — seed is best-effort
 		frappe.db.rollback()
 		try:
 			_ensure_roles()
@@ -87,6 +93,7 @@ def _seed_all():
 	_seed_plans()
 	_seed_default_server()
 	_seed_number_cards()
+	_seed_workspace_links()
 	frappe.db.commit()
 
 
@@ -110,11 +117,25 @@ def _seed_settings():
 		"disk_pool_mb": 102400,
 		"reserved_slugs": "space,portal,erp,www,mail,api",
 		"allowed_origins": "https://portal.zatgo.online",
+		"backup_schedule": "Daily",
+		"backup_retention_days": 14,
+		"monitoring_interval_minutes": 60,
+		"server_selection": "Preferred",
+		"default_plan": "basic",
+		"default_apps": "frappe,erpnext",
+		"ssh_default_user": "root",
+		"ssh_default_port": 22,
+		"deployment_timeout_minutes": 120,
+		"estimated_create_minutes": 15,
+		"rate_limit_per_minute": 120,
 	}
 	for key, val in defaults.items():
 		if not doc.get(key):
 			doc.set(key, val)
 			changed = True
+	if not doc.prefer_server and frappe.db.exists("Space Server", "primary-do"):
+		doc.prefer_server = "primary-do"
+		changed = True
 	if changed:
 		doc.save(ignore_permissions=True)
 
@@ -167,6 +188,9 @@ def _seed_default_server():
 			"cpu_cores": 1,
 			"ram_mb": 2048,
 			"disk_mb": 49152,
+			"max_sites": 50,
+			"weight": 1,
+			"ssl_mode": "Wildcard",
 			"status": "Active",
 			"health": "Unknown",
 			"is_default": 1,
@@ -215,6 +239,22 @@ NUMBER_CARDS = [
 		"function": "Count",
 		"filters_json": '[["Space Deployment Job","status","=","Failed"]]',
 	},
+	{
+		"name": "Space Running Jobs",
+		"label": "Running Jobs",
+		"type": "Document Type",
+		"document_type": "Space Deployment Job",
+		"function": "Count",
+		"filters_json": '[["Space Deployment Job","status","in",["Queued","Running"]]]',
+	},
+	{
+		"name": "Space Trials",
+		"label": "Trials",
+		"type": "Document Type",
+		"document_type": "Space Subscription",
+		"function": "Count",
+		"filters_json": '[["Space Subscription","status","=","Trial"]]',
+	},
 ]
 
 
@@ -254,7 +294,6 @@ def _seed_number_cards():
 		ws.type = "Workspace"
 	ws.set("number_cards", [])
 	for name in card_names:
-		# Only link cards that actually exist
 		if frappe.db.exists("Number Card", name):
 			ws.append("number_cards", {"number_card_name": name, "label": name})
 	import json
@@ -281,3 +320,38 @@ def _seed_number_cards():
 	ws.flags.ignore_links = True
 	ws.flags.ignore_mandatory = True
 	ws.save(ignore_permissions=True)
+
+
+EXTRA_LINKS = [
+	("Ops", "Card Break", None),
+	("Space Backup", "Link", "Space Backup"),
+	("Space Domain", "Link", "Space Domain"),
+	("Space Notification", "Link", "Space Notification"),
+	("Space Metric Snapshot", "Link", "Space Metric Snapshot"),
+	("Space Audit Log", "Link", "Space Audit Log"),
+	("Billing Extra", "Card Break", None),
+	("Space Invoice", "Link", "Space Invoice"),
+	("Space Usage", "Link", "Space Usage"),
+	("Space Payment History", "Link", "Space Payment History"),
+]
+
+
+def _seed_workspace_links():
+	if not frappe.db.exists("Workspace", "Cloud Manager"):
+		return
+	ws = frappe.get_doc("Workspace", "Cloud Manager")
+	existing = {(l.label, l.type) for l in (ws.links or [])}
+	changed = False
+	for label, typ, link_to in EXTRA_LINKS:
+		if (label, typ) in existing:
+			continue
+		row = {"label": label, "type": typ, "hidden": 0, "onboard": 0}
+		if typ == "Link":
+			row.update({"link_type": "DocType", "link_to": link_to})
+		elif typ == "Card Break":
+			row["link_count"] = 0
+		ws.append("links", row)
+		changed = True
+	if changed:
+		ws.flags.ignore_links = True
+		ws.save(ignore_permissions=True)

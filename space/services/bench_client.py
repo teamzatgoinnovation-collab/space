@@ -352,3 +352,93 @@ def get_backend_mem(server_name: str | None = None) -> dict[str, Any]:
 	raw = (r["stdout"] or "").strip()
 	parts = [p.strip() for p in raw.split("/")]
 	return {"raw": raw, "used": parts[0] if parts else "", "limit": parts[1] if len(parts) > 1 else ""}
+
+
+def backup_site(server_name: str | None, site: str, *, with_files: bool = True) -> dict[str, Any]:
+	"""Run bench backup for a site. Returns stdout/stderr from bench."""
+	site = _assert_site(site)
+	args = ["bench", "--site", site, "backup"]
+	if with_files:
+		args.append("--with-files")
+	return run_on_bench(server_name, args, timeout_s=60 * 60)
+
+
+def restore_site(
+	server_name: str | None,
+	site: str,
+	sql_file: str,
+	*,
+	force: bool = True,
+) -> dict[str, Any]:
+	"""Restore a site from a SQL dump path inside the bench container."""
+	site = _assert_site(site)
+	sql_file = (sql_file or "").strip()
+	if not sql_file or ".." in sql_file or sql_file.startswith("/"):
+		# allow absolute under sites/ only via relative path
+		if not sql_file.startswith("sites/") and "/private/" not in sql_file:
+			raise BenchError("Invalid restore path")
+	args = ["bench", "--site", site, "restore", sql_file]
+	if force:
+		args.append("--force")
+	return run_on_bench(server_name, args, timeout_s=60 * 60)
+
+
+def get_backend_stats(server_name: str | None = None) -> dict[str, Any]:
+	"""Collect CPU/RAM/disk/queue/worker hints for monitoring snapshots."""
+	server = get_server(server_name)
+	stats: dict[str, Any] = {"bench_status": "unknown", "scheduler_status": "unknown"}
+	try:
+		ver = test_server_connection(server_name)
+		stats["bench_status"] = "ok"
+		stats["bench_version"] = ver.get("version")
+	except Exception as e:
+		stats["bench_status"] = "error"
+		stats["bench_error"] = str(e)[:200]
+
+	mem = get_backend_mem(server_name)
+	stats["memory"] = mem
+
+	container = server.backend_container or "frappe_docker-backend-1"
+	try:
+		if _same_host(server) or _in_bench_container():
+			# disk of sites folder
+			r = run_on_bench(server_name, ["du", "-sm", "sites"], timeout_s=60)
+			first = (r["stdout"] or "").strip().split()[0] if r["stdout"] else "0"
+			stats["disk_used_mb"] = int(first)
+		else:
+			r = _run_ssh(server, ["docker", "exec", container, "du", "-sm", "/home/frappe/frappe-bench/sites"], 60)
+			first = (r["stdout"] or "").strip().split()[0] if r["stdout"] else "0"
+			stats["disk_used_mb"] = int(first)
+	except Exception:
+		stats["disk_used_mb"] = 0
+
+	try:
+		# queue length via redis-cli if available (best-effort)
+		r = run_on_bench(
+			server_name,
+			["bash", "-lc", "redis-cli -n 1 LLEN rq:queue:default 2>/dev/null || echo 0"],
+			timeout_s=15,
+		)
+		stats["queue_length"] = int((r["stdout"] or "0").strip().splitlines()[-1] or 0)
+	except Exception:
+		stats["queue_length"] = 0
+
+	try:
+		r = run_on_bench(
+			server_name,
+			["bash", "-lc", "ps aux | grep -E 'frappe|worker|schedule' | grep -v grep | wc -l"],
+			timeout_s=15,
+		)
+		stats["workers"] = int((r["stdout"] or "0").strip().splitlines()[-1] or 0)
+		stats["scheduler_status"] = "ok" if stats["workers"] > 0 else "unknown"
+	except Exception:
+		stats["workers"] = 0
+
+	try:
+		# redis ping
+		r = run_on_bench(server_name, ["bash", "-lc", "redis-cli ping 2>/dev/null || echo FAIL"], timeout_s=10)
+		stats["redis_ok"] = "PONG" in (r["stdout"] or "")
+	except Exception:
+		stats["redis_ok"] = False
+
+	return stats

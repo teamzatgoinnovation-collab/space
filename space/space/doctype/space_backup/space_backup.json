@@ -1,25 +1,19 @@
 {
  "actions": [],
- "autoname": "hash",
- "creation": "2026-07-24 00:00:00.000000",
+ "creation": "2026-07-24 12:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "site",
   "server",
-  "job_type",
+  "backup_type",
   "status",
-  "progress",
-  "estimated_minutes",
-  "can_retry",
-  "can_cancel",
-  "can_rollback",
-  "parent_job",
-  "timeline_section",
+  "file_size_mb",
+  "file_path",
   "started_at",
   "finished_at",
-  "timeline_json",
-  "live_log",
+  "is_restore_point",
+  "job",
   "output",
   "error_log"
  ],
@@ -36,75 +30,41 @@
    "fieldname": "server",
    "fieldtype": "Link",
    "label": "Server",
-   "options": "Space Server",
-   "reqd": 1,
-   "in_list_view": 1
+   "options": "Space Server"
   },
   {
-   "fieldname": "job_type",
+   "fieldname": "backup_type",
    "fieldtype": "Select",
-   "label": "Job Type",
-   "options": "Create\nSuspend\nResume\nDelete\nUpdate\nBackup\nRestore\nRollback",
-   "reqd": 1,
+   "label": "Type",
+   "options": "Manual\nAutomatic",
+   "default": "Manual",
    "in_list_view": 1
   },
   {
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Queued\nRunning\nSucceeded\nFailed\nCancelled",
+   "options": "Queued\nRunning\nSucceeded\nFailed\nDeleted",
    "default": "Queued",
    "in_list_view": 1
   },
   {
-   "fieldname": "progress",
-   "fieldtype": "Int",
-   "label": "Progress %",
-   "default": "0",
-   "non_negative": 1
-  },
-  {
-   "fieldname": "estimated_minutes",
-   "fieldtype": "Int",
-   "label": "Estimated Minutes",
+   "fieldname": "file_size_mb",
+   "fieldtype": "Float",
+   "label": "File Size (MB)",
    "default": "0"
   },
   {
-   "fieldname": "can_retry",
-   "fieldtype": "Check",
-   "label": "Can Retry",
-   "default": "0",
+   "fieldname": "file_path",
+   "fieldtype": "Data",
+   "label": "File Path",
    "read_only": 1
-  },
-  {
-   "fieldname": "can_cancel",
-   "fieldtype": "Check",
-   "label": "Can Cancel",
-   "default": "0",
-   "read_only": 1
-  },
-  {
-   "fieldname": "can_rollback",
-   "fieldtype": "Check",
-   "label": "Can Rollback",
-   "default": "0",
-   "read_only": 1
-  },
-  {
-   "fieldname": "parent_job",
-   "fieldtype": "Link",
-   "label": "Parent Job",
-   "options": "Space Deployment Job"
-  },
-  {
-   "fieldname": "timeline_section",
-   "fieldtype": "Section Break",
-   "label": "Timeline & Logs"
   },
   {
    "fieldname": "started_at",
    "fieldtype": "Datetime",
-   "label": "Started"
+   "label": "Started",
+   "in_list_view": 1
   },
   {
    "fieldname": "finished_at",
@@ -112,15 +72,16 @@
    "label": "Finished"
   },
   {
-   "fieldname": "timeline_json",
-   "fieldtype": "Code",
-   "label": "Timeline",
-   "options": "JSON"
+   "fieldname": "is_restore_point",
+   "fieldtype": "Check",
+   "label": "Restore Point",
+   "default": "0"
   },
   {
-   "fieldname": "live_log",
-   "fieldtype": "Long Text",
-   "label": "Live Log"
+   "fieldname": "job",
+   "fieldtype": "Link",
+   "label": "Deployment Job",
+   "options": "Space Deployment Job"
   },
   {
    "fieldname": "output",
@@ -136,7 +97,7 @@
  "links": [],
  "modified": "2026-07-24 12:00:00.000000",
  "module": "Space",
- "name": "Space Deployment Job",
+ "name": "Space Backup",
  "permissions": [
   {
    "role": "System Manager",
@@ -167,10 +128,17 @@
    "report": 1
   },
   {
-   "role": "Support Engineer",
+   "role": "Space Customer",
    "create": 0,
    "read": 1,
    "write": 0,
+   "delete": 0
+  },
+  {
+   "role": "Support Engineer",
+   "create": 0,
+   "read": 1,
+   "write": 1,
    "delete": 0,
    "export": 1,
    "report": 1
@@ -183,14 +151,11 @@
    "delete": 0,
    "export": 1,
    "report": 1
-  },
-  {
-   "role": "Space Customer",
-   "read": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "autoname": "hash"
 }

@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "creation": "2026-07-24 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "invoice",
+  "subscription",
+  "amount",
+  "currency",
+  "status",
+  "method",
+  "reference",
+  "paid_on",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Space Customer",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Link",
+   "label": "Invoice",
+   "options": "Space Invoice",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "subscription",
+   "fieldtype": "Link",
+   "label": "Subscription",
+   "options": "Space Subscription"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency",
+   "default": "USD"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nSucceeded\nFailed\nRefunded\nFree",
+   "default": "Free",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "default": "None"
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "paid_on",
+   "fieldtype": "Datetime",
+   "label": "Paid On"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-24 12:00:00.000000",
+ "module": "Space",
+ "name": "Space Payment History",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Space Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Billing Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Space Customer",
+   "create": 0,
+   "read": 1,
+   "write": 0,
+   "delete": 0
+  },
+  {
+   "role": "Support Engineer",
+   "create": 0,
+   "read": 1,
+   "write": 1,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Readonly Auditor",
+   "create": 0,
+   "read": 1,
+   "write": 0,
+   "delete": 0,
+   "export": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "autoname": "hash"
+}

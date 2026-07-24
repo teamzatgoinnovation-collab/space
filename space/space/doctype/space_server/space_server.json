@@ -25,8 +25,17 @@
   "cpu_cores",
   "ram_mb",
   "disk_mb",
+  "max_sites",
+  "weight",
+  "cpu_used_percent",
+  "ram_used_mb",
+  "disk_used_mb",
   "active_sites",
   "last_health_at",
+  "ssl_section",
+  "ssl_mode",
+  "ssl_expires_on",
+  "ssl_last_checked",
   "stats_json"
  ],
  "fields": [
@@ -149,6 +158,38 @@
    "default": "51200"
   },
   {
+   "fieldname": "max_sites",
+   "fieldtype": "Int",
+   "label": "Max Sites",
+   "default": "50",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Int",
+   "label": "Pool Weight",
+   "default": "1",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "cpu_used_percent",
+   "fieldtype": "Float",
+   "label": "CPU Used %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ram_used_mb",
+   "fieldtype": "Float",
+   "label": "RAM Used (MB)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "disk_used_mb",
+   "fieldtype": "Float",
+   "label": "Disk Used (MB)",
+   "read_only": 1
+  },
+  {
    "fieldname": "active_sites",
    "fieldtype": "Int",
    "label": "Active Sites",
@@ -159,6 +200,29 @@
    "fieldname": "last_health_at",
    "fieldtype": "Datetime",
    "label": "Last Health Check",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ssl_section",
+   "fieldtype": "Section Break",
+   "label": "SSL"
+  },
+  {
+   "fieldname": "ssl_mode",
+   "fieldtype": "Select",
+   "label": "SSL Mode",
+   "options": "Wildcard\nLetsEncrypt\nCustom",
+   "default": "Wildcard"
+  },
+  {
+   "fieldname": "ssl_expires_on",
+   "fieldtype": "Date",
+   "label": "SSL Expires On"
+  },
+  {
+   "fieldname": "ssl_last_checked",
+   "fieldtype": "Datetime",
+   "label": "SSL Last Checked",
    "read_only": 1
   },
   {

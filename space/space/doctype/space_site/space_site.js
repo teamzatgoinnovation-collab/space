@@ -34,6 +34,19 @@ frappe.ui.form.on("Space Site", {
 				});
 			});
 		}
+		if (["Active", "Suspended"].includes(frm.doc.status)) {
+			frm.add_custom_button(__("Backup Now"), () => {
+				frappe.call({
+					method: "backup_now",
+					doc: frm.doc,
+					freeze: true,
+					callback: () => {
+						frappe.show_alert({ message: __("Backup queued"), indicator: "green" });
+						frm.reload_doc();
+					},
+				});
+			});
+		}
 		if (frm.doc.job) {
 			frm.add_custom_button(__("View Job"), () => {
 				frappe.set_route("Form", "Space Deployment Job", frm.doc.job);

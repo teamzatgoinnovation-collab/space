@@ -40,5 +40,10 @@ class SpaceSite(Document):
 		return enqueue_delete_site(self.name)
 
 	@frappe.whitelist()
+	def backup_now(self):
+		from space.jobs.backup import enqueue_backup
+		return enqueue_backup(self.name, backup_type="Manual")
+
+	@frappe.whitelist()
 	def open_site(self):
 		return {"url": f"https://{self.domain}"}
