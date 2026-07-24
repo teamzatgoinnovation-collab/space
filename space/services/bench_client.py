@@ -207,6 +207,37 @@ def list_bench_apps(server_name: str | None = None) -> list[str]:
 	return [l.strip() for l in (r["stdout"] or "").splitlines() if l.strip() and PACKAGE_RE.match(l.strip())]
 
 
+def _resolve_db_root_password(explicit: str | None = None) -> str:
+	if explicit:
+		return explicit
+	for key in ("MYSQL_ROOT_PASSWORD", "MARIADB_ROOT_PASSWORD", "DO_DB_ROOT_PASSWORD"):
+		val = (os.environ.get(key) or "").strip()
+		if val:
+			return val
+	try:
+		# Prefer Space Settings encrypted password when workers lack compose env
+		settings = frappe.get_single("Space Settings")
+		try:
+			pwd = settings.get_password("db_root_password")
+			if pwd:
+				return pwd
+		except Exception:
+			pass
+	except Exception:
+		pass
+	try:
+		# common_site_config / site_config via connected site
+		pwd = (frappe.conf.get("db_root_password") or "").strip()
+		if pwd:
+			return pwd
+	except Exception:
+		pass
+	raise BenchError(
+		"DB root password not configured. Set MYSQL_ROOT_PASSWORD on workers "
+		"or Space Settings.db_root_password / common_site_config db_root_password."
+	)
+
+
 def new_site(
 	server_name: str | None,
 	site: str,
@@ -218,17 +249,17 @@ def new_site(
 	site = _assert_site(site)
 	if not admin_password or len(admin_password) < 8:
 		raise BenchError("Admin password must be at least 8 characters")
-	db_root = db_root_password or os.environ.get("MYSQL_ROOT_PASSWORD") or os.environ.get("DO_DB_ROOT_PASSWORD")
+	db_root = _resolve_db_root_password(db_root_password)
 	args = [
 		"bench",
 		"new-site",
 		site,
-		"--no-mariadb-socket",
+		"--mariadb-user-host-login-scope=%",
+		"--db-root-password",
+		db_root,
 		"--admin-password",
 		admin_password,
 	]
-	if db_root:
-		args += ["--db-root-password", db_root]
 	if install_erpnext:
 		args += ["--install-app", "erpnext"]
 	return run_on_bench(server_name, args, timeout_s=60 * 60)

@@ -8,6 +8,7 @@
   "domain_suffix",
   "portal_base_url",
   "allowed_origins",
+  "db_root_password",
   "pool_section",
   "ram_pool_mb",
   "disk_pool_mb",
@@ -31,6 +32,12 @@
    "fieldname": "allowed_origins",
    "fieldtype": "Small Text",
    "label": "Allowed Origins (CORS)"
+  },
+  {
+   "fieldname": "db_root_password",
+   "fieldtype": "Password",
+   "label": "Bench MariaDB Root Password",
+   "description": "Used by queue workers for bench new-site (when MYSQL_ROOT_PASSWORD is not in the worker env)"
   },
   {
    "fieldname": "pool_section",
