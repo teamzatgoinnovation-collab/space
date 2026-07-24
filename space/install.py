@@ -204,17 +204,18 @@ def _seed_number_cards():
 		return
 	card_names = []
 	for spec in NUMBER_CARDS:
-		card_names.append(spec["name"])
-		if frappe.db.exists("Number Card", spec["name"]):
-			doc = frappe.get_doc("Number Card", spec["name"])
+		wanted = spec["name"]
+		if frappe.db.exists("Number Card", wanted):
+			doc = frappe.get_doc("Number Card", wanted)
 			for k, v in spec.items():
 				if k != "name":
 					doc.set(k, v)
 			doc.is_public = 1
 			doc.module = "Space"
 			doc.save(ignore_permissions=True)
+			card_names.append(doc.name)
 		else:
-			frappe.get_doc(
+			doc = frappe.get_doc(
 				{
 					"doctype": "Number Card",
 					**spec,
@@ -222,22 +223,25 @@ def _seed_number_cards():
 					"module": "Space",
 					"show_percentage_stats": 0,
 				}
-			).insert(ignore_permissions=True)
+			)
+			doc.insert(ignore_permissions=True)
+			card_names.append(doc.name)
+	frappe.db.commit()
 
 	if not frappe.db.exists("Workspace", "Cloud Manager"):
 		return
 	ws = frappe.get_doc("Workspace", "Cloud Manager")
 	ws.set("number_cards", [])
 	for name in card_names:
-		ws.append("number_cards", {"number_card_name": name, "label": name})
-	# Ensure number cards appear in workspace content
+		# Only link cards that actually exist
+		if frappe.db.exists("Number Card", name):
+			ws.append("number_cards", {"number_card_name": name, "label": name})
 	import json
 
 	try:
 		content = json.loads(ws.content or "[]")
 	except Exception:
 		content = []
-	# Drop old number_card blocks then prepend fresh ones after header
 	content = [b for b in content if b.get("type") != "number_card"]
 	nc_blocks = [
 		{
@@ -246,11 +250,12 @@ def _seed_number_cards():
 			"data": {"number_card_name": name, "col": 2 if i < 4 else 4},
 		}
 		for i, name in enumerate(card_names)
+		if frappe.db.exists("Number Card", name)
 	]
-	# Insert after first header if present
 	if content and content[0].get("type") == "header":
 		content = [content[0]] + nc_blocks + content[1:]
 	else:
 		content = nc_blocks + content
 	ws.content = json.dumps(content)
+	ws.flags.ignore_links = True
 	ws.save(ignore_permissions=True)
