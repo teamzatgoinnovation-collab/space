@@ -26,10 +26,10 @@ def _enqueue(site_name: str, job_type: str, method: str) -> dict:
 	frappe.db.commit()
 	frappe.enqueue(
 		method,
-		job_name=job.name,
 		queue="long",
 		timeout=3600,
 		job_id=f"space-{job_type.lower()}-{site.name}-{job.name}",
+		deployment_job=job.name,
 	)
 	log_activity(f"{job_type} enqueued", "Space Site", site.name, job.name)
 	return {"ok": True, "job": job.name}
@@ -56,15 +56,17 @@ def enqueue_delete_site(site_name: str) -> dict:
 	return _enqueue(site_name, "Delete", "space.jobs.lifecycle.run_delete_site")
 
 
-def run_suspend_site(job_name: str):
-	_run_simple(job_name, maintenance=True, final_status="Suspended")
+def run_suspend_site(deployment_job: str | None = None, job_name: str | None = None):
+	_run_simple(deployment_job or job_name, maintenance=True, final_status="Suspended")
 
 
-def run_resume_site(job_name: str):
-	_run_simple(job_name, maintenance=False, final_status="Active")
+def run_resume_site(deployment_job: str | None = None, job_name: str | None = None):
+	_run_simple(deployment_job or job_name, maintenance=False, final_status="Active")
 
 
 def _run_simple(job_name: str, *, maintenance: bool, final_status: str):
+	if not job_name:
+		frappe.throw("deployment_job is required")
 	job = frappe.get_doc("Space Deployment Job", job_name)
 	site = frappe.get_doc("Space Site", job.site)
 	try:
@@ -100,7 +102,10 @@ def _run_simple(job_name: str, *, maintenance: bool, final_status: str):
 		raise
 
 
-def run_delete_site(job_name: str):
+def run_delete_site(deployment_job: str | None = None, job_name: str | None = None):
+	job_name = deployment_job or job_name
+	if not job_name:
+		frappe.throw("deployment_job is required")
 	job = frappe.get_doc("Space Deployment Job", job_name)
 	site = frappe.get_doc("Space Site", job.site)
 	try:

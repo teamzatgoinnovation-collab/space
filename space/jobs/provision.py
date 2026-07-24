@@ -32,16 +32,20 @@ def enqueue_create_site(site_name: str) -> dict:
 
 	frappe.enqueue(
 		"space.jobs.provision.run_create_site",
-		job_name=job.name,
 		queue="long",
 		timeout=7200,
 		job_id=f"space-create-{site.name}-{job.name}",
+		deployment_job=job.name,
 	)
 	log_activity("Create site enqueued", "Space Site", site.name, job.name)
 	return {"ok": True, "job": job.name}
 
 
-def run_create_site(job_name: str):
+def run_create_site(deployment_job: str | None = None, job_name: str | None = None):
+	# Accept legacy kwarg name; frappe.enqueue reserves job_name for RQ metadata
+	job_name = deployment_job or job_name
+	if not job_name:
+		frappe.throw("deployment_job is required")
 	job = frappe.get_doc("Space Deployment Job", job_name)
 	site = frappe.get_doc("Space Site", job.site)
 	server = job.server
