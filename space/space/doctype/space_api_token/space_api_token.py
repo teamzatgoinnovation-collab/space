@@ -1,9 +1,7 @@
-# Copyright (c) 2026, ZatGo Innovation and contributors
-# License: MIT
+"""Space API Token."""
 
-import frappe
 from frappe.model.document import Document
 
 
-class SpaceApiToken(Document):
+class SpaceAPIToken(Document):
 	pass
