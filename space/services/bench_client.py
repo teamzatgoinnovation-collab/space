@@ -53,15 +53,27 @@ def get_server(server_name: str | None = None) -> Any:
 	return frappe.get_doc("Space Server", name)
 
 
+def _in_bench_container() -> bool:
+	"""True when this process already runs inside the Frappe bench container."""
+	if os.environ.get("SPACE_BENCH_INPROCESS") == "1":
+		return True
+	# frappe_docker backend has bench but typically no docker CLI
+	if os.path.isdir("/home/frappe/frappe-bench/sites") and not os.path.exists("/usr/bin/docker"):
+		try:
+			r = subprocess.run(["which", "bench"], capture_output=True, text=True, timeout=3)
+			return r.returncode == 0
+		except Exception:
+			return False
+	return False
+
+
 def _same_host(server) -> bool:
-	"""True if we can docker-exec locally (Space site on the bench host)."""
-	# Prefer local when SPACE_BENCH_LOCAL=1 or IP is loopback / missing SSH key
+	"""True if we can docker-exec from the host (Space site on the bench host)."""
 	if os.environ.get("SPACE_BENCH_LOCAL") == "1":
 		return True
 	ip = (server.ip_address or "").strip()
 	if ip in ("127.0.0.1", "localhost"):
 		return True
-	# Running inside docker network — try local docker first
 	try:
 		r = subprocess.run(
 			["docker", "inspect", server.backend_container, "--format", "{{.Id}}"],
@@ -85,18 +97,26 @@ def run_on_bench(
 		if not isinstance(a, str) or "\0" in a:
 			raise BenchError("Invalid argv token")
 
+	# Control plane site lives on the same bench → run bench commands in-process
+	if _in_bench_container():
+		return _run(list(argv), timeout_s, cwd="/home/frappe/frappe-bench")
+
 	container = server.backend_container or "frappe_docker-backend-1"
 
 	if _same_host(server):
-		cmd = ["docker", "exec", container, *argv]
+		cmd = ["docker", "exec", "-w", "/home/frappe/frappe-bench", container, *argv]
 		return _run(cmd, timeout_s)
 
-	return _run_ssh(server, ["docker", "exec", container, *argv], timeout_s)
+	return _run_ssh(
+		server,
+		["docker", "exec", "-w", "/home/frappe/frappe-bench", container, *argv],
+		timeout_s,
+	)
 
 
-def _run(cmd: list[str], timeout_s: int) -> dict[str, Any]:
+def _run(cmd: list[str], timeout_s: int, cwd: str | None = None) -> dict[str, Any]:
 	try:
-		p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s)
+		p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s, cwd=cwd)
 	except subprocess.TimeoutExpired as e:
 		raise BenchError("Command timed out", stdout=e.stdout or "", stderr=e.stderr or "", code=124) from e
 	ok = p.returncode == 0

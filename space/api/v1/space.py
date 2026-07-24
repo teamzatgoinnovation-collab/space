@@ -38,9 +38,16 @@ def list_catalog():
 		order_by="sort_order asc",
 	):
 		doc = frappe.get_doc("Space Plan", p.name)
+		feat = p.get("features") or ""
+		features = (
+			[x.strip() for x in feat.splitlines() if x.strip()]
+			if isinstance(feat, str)
+			else list(feat or [])
+		)
 		plans.append(
 			{
 				**p,
+				"features": features,
 				"allowed_apps": [
 					{"package": r.app_package, "title": r.app_title} for r in doc.allowed_apps
 				],
