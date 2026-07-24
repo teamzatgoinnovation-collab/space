@@ -1,0 +1,170 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:code",
+ "creation": "2026-07-24 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "code",
+  "title",
+  "is_active",
+  "sort_order",
+  "pricing_section",
+  "monthly_price",
+  "yearly_price",
+  "trial_days",
+  "limits_section",
+  "max_users",
+  "storage_mb",
+  "cpu_limit",
+  "ram_mb",
+  "apps_section",
+  "allowed_apps",
+  "features"
+ ],
+ "fields": [
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Code",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active",
+   "default": "1"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Sort Order",
+   "default": "0"
+  },
+  {
+   "fieldname": "pricing_section",
+   "fieldtype": "Section Break",
+   "label": "Pricing"
+  },
+  {
+   "fieldname": "monthly_price",
+   "fieldtype": "Currency",
+   "label": "Monthly Price",
+   "default": "0",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "yearly_price",
+   "fieldtype": "Currency",
+   "label": "Yearly Price",
+   "default": "0"
+  },
+  {
+   "fieldname": "trial_days",
+   "fieldtype": "Int",
+   "label": "Trial Days",
+   "default": "14",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "limits_section",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "fieldname": "max_users",
+   "fieldtype": "Int",
+   "label": "Max Users",
+   "default": "5",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "storage_mb",
+   "fieldtype": "Int",
+   "label": "Storage (MB)",
+   "default": "5120",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "cpu_limit",
+   "fieldtype": "Float",
+   "label": "CPU",
+   "default": "1"
+  },
+  {
+   "fieldname": "ram_mb",
+   "fieldtype": "Int",
+   "label": "RAM (MB)",
+   "default": "1024",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "apps_section",
+   "fieldtype": "Section Break",
+   "label": "Allowed Apps"
+  },
+  {
+   "fieldname": "allowed_apps",
+   "fieldtype": "Table",
+   "label": "Allowed Apps",
+   "options": "Space Plan App"
+  },
+  {
+   "fieldname": "features",
+   "fieldtype": "Small Text",
+   "label": "Features"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-24 00:00:00.000000",
+ "module": "Space",
+ "name": "Space Plan",
+ "naming_rule": "By fieldname",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Space Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  },
+  {
+   "role": "Space Operator",
+   "read": 1
+  },
+  {
+   "role": "Space Customer",
+   "read": 1
+  },
+  {
+   "role": "All",
+   "read": 1
+  }
+ ],
+ "sort_field": "sort_order",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

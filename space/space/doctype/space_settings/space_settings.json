@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "creation": "2026-07-24 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "issingle": 1,
+ "field_order": [
+  "domain_suffix",
+  "portal_base_url",
+  "allowed_origins",
+  "pool_section",
+  "ram_pool_mb",
+  "disk_pool_mb",
+  "reserved_slugs",
+  "internal_token"
+ ],
+ "fields": [
+  {
+   "fieldname": "domain_suffix",
+   "fieldtype": "Data",
+   "label": "Domain Suffix",
+   "default": "zatgo.online"
+  },
+  {
+   "fieldname": "portal_base_url",
+   "fieldtype": "Data",
+   "label": "Portal Base URL",
+   "default": "https://portal.zatgo.online"
+  },
+  {
+   "fieldname": "allowed_origins",
+   "fieldtype": "Small Text",
+   "label": "Allowed Origins (CORS)"
+  },
+  {
+   "fieldname": "pool_section",
+   "fieldtype": "Section Break",
+   "label": "Soft Pool"
+  },
+  {
+   "fieldname": "ram_pool_mb",
+   "fieldtype": "Int",
+   "label": "RAM Pool (MB)",
+   "default": "10240"
+  },
+  {
+   "fieldname": "disk_pool_mb",
+   "fieldtype": "Int",
+   "label": "Disk Pool (MB)",
+   "default": "102400"
+  },
+  {
+   "fieldname": "reserved_slugs",
+   "fieldtype": "Small Text",
+   "label": "Reserved Slugs"
+  },
+  {
+   "fieldname": "internal_token",
+   "fieldtype": "Password",
+   "label": "Internal API Token"
+  }
+ ],
+ "links": [],
+ "modified": "2026-07-24 00:00:00.000000",
+ "module": "Space",
+ "name": "Space Settings",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Space Admin",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "export": 1,
+   "report": 1
+  }
+ ],
+ "states": [],
+ "track_changes": 1
+}
