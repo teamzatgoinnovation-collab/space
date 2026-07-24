@@ -115,6 +115,7 @@
   "owner": "Administrator",
   "parent_page": "",
   "public": 1,
+  "type": "Workspace",
   "restrict_to_domain": "",
   "roles": [],
   "sequence_id": 1.0,
