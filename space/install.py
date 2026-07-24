@@ -64,7 +64,21 @@ def after_install():
 
 
 def after_migrate():
-	_seed_all()
+	try:
+		_seed_all()
+	except Exception:
+		frappe.log_error(title="Space after_migrate seed failed")
+		# Do not block migrate — seed is best-effort
+		frappe.db.rollback()
+		try:
+			_ensure_roles()
+			_seed_settings()
+			_seed_plans()
+			_seed_default_server()
+			frappe.db.commit()
+		except Exception:
+			frappe.log_error(title="Space after_migrate core seed failed")
+			frappe.db.rollback()
 
 
 def _seed_all():
@@ -236,6 +250,8 @@ def _seed_number_cards():
 	if not frappe.db.exists("Workspace", "Cloud Manager"):
 		return
 	ws = frappe.get_doc("Workspace", "Cloud Manager")
+	if not ws.get("type"):
+		ws.type = "Workspace"
 	ws.set("number_cards", [])
 	for name in card_names:
 		# Only link cards that actually exist
@@ -263,4 +279,5 @@ def _seed_number_cards():
 		content = nc_blocks + content
 	ws.content = json.dumps(content)
 	ws.flags.ignore_links = True
+	ws.flags.ignore_mandatory = True
 	ws.save(ignore_permissions=True)
