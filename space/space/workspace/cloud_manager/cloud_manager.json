@@ -1,12 +1,12 @@
 {
   "charts": [],
-  "content": "[{\"id\": \"hdr1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Cloud Manager</b></span>\", \"col\": 12}}, {\"id\": \"spc1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"card1\", \"type\": \"card\", \"data\": {\"card_name\": \"Core\", \"col\": 4}}, {\"id\": \"card2\", \"type\": \"card\", \"data\": {\"card_name\": \"Framework\", \"col\": 4}}]",
+  "content": "[{\"id\": \"hdr1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Cloud Manager</b></span>\", \"col\": 12}}, {\"id\": \"spc1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"card1\", \"type\": \"card\", \"data\": {\"card_name\": \"Workbench\", \"col\": 12}}, {\"id\": \"card2\", \"type\": \"card\", \"data\": {\"card_name\": \"Core\", \"col\": 6}}, {\"id\": \"card3\", \"type\": \"card\", \"data\": {\"card_name\": \"Framework\", \"col\": 6}}]",
   "creation": "2026-07-24 00:00:00.000000",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
   "hide_custom": 0,
-  "icon": "organization",
+  "icon": "cloud",
   "idx": 0,
   "is_hidden": 0,
   "label": "Cloud Manager",
@@ -32,7 +32,7 @@
       "hidden": 0,
       "is_query_report": 0,
       "label": "Core",
-      "link_count": 5,
+      "link_count": 6,
       "onboard": 0,
       "type": "Card Break"
     },
@@ -75,6 +75,15 @@
     {
       "hidden": 0,
       "is_query_report": 0,
+      "label": "Space Invoice",
+      "link_to": "Space Invoice",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
       "label": "Space Job",
       "link_to": "Space Job",
       "link_type": "DocType",
@@ -85,7 +94,7 @@
       "hidden": 0,
       "is_query_report": 0,
       "label": "Framework",
-      "link_count": 3,
+      "link_count": 5,
       "onboard": 0,
       "type": "Card Break"
     },
@@ -94,6 +103,24 @@
       "is_query_report": 0,
       "label": "Space Resource",
       "link_to": "Space Resource",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Automation Rule",
+      "link_to": "Space Automation Rule",
+      "link_type": "DocType",
+      "onboard": 0,
+      "type": "Link"
+    },
+    {
+      "hidden": 0,
+      "is_query_report": 0,
+      "label": "Space Webhook",
+      "link_to": "Space Webhook",
       "link_type": "DocType",
       "onboard": 0,
       "type": "Link"
@@ -117,7 +144,7 @@
       "type": "Link"
     }
   ],
-  "modified": "2026-07-24 00:00:00.000000",
+  "modified": "2026-07-24 21:00:00.000000",
   "module": "Space",
   "name": "Cloud Manager",
   "number_cards": [],
@@ -130,7 +157,7 @@
   "sequence_id": 1.0,
   "shortcuts": [
     {
-      "color": "Blue",
+      "color": "Purple",
       "label": "Space Cloud",
       "link_to": "space-cloud",
       "type": "Page"
@@ -155,6 +182,20 @@
       "doc_view": "List",
       "label": "Deployments",
       "link_to": "Space Deployment Job",
+      "type": "DocType"
+    },
+    {
+      "color": "Teal",
+      "doc_view": "List",
+      "label": "Customers",
+      "link_to": "Space Customer",
+      "type": "DocType"
+    },
+    {
+      "color": "Yellow",
+      "doc_view": "List",
+      "label": "Subscriptions",
+      "link_to": "Space Subscription",
       "type": "DocType"
     }
   ],
