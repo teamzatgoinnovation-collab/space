@@ -16,6 +16,7 @@
   "trial_days",
   "limits_section",
   "max_users",
+  "max_companies",
   "storage_mb",
   "cpu_limit",
   "ram_mb",
@@ -96,6 +97,14 @@
    "label": "Max Users",
    "default": "5",
    "non_negative": 1
+  },
+  {
+   "fieldname": "max_companies",
+   "fieldtype": "Int",
+   "label": "Max Companies",
+   "default": "0",
+   "non_negative": 1,
+   "description": "0 = unlimited"
   },
   {
    "fieldname": "storage_mb",
