@@ -99,6 +99,8 @@ def make_compat_delegates(version: str, fn_names: tuple[str, ...]) -> dict[str, 
 			return frappe.call(resolve_compat_function(version, fn_name), *args, **kwargs)
 
 		_delegate.__name__ = fn_name
+		_delegate.__qualname__ = fn_name
+		_delegate.__module__ = f"space.api.{version}.space"
 		return frappe.whitelist()(_delegate)
 
 	return {fn_name: _make(fn_name) for fn_name in fn_names}
