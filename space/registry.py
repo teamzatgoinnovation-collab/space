@@ -7,6 +7,13 @@ Other apps (e.g. space_cloud) contribute via hooks.py keys:
   space_job_handlers = {"create_site": "pkg.module.fn"}
   space_dashboard_cards = ["Card Label", ...]
   space_api_namespaces = ["space_cloud.api.v1"]
+  space_v1_compat_module = "space_cloud.api.v1.space"
+
+Space core never imports a vertical app (e.g. space_cloud) by name —
+that would invert the dependency (verticals require space, not the other
+way round). Anything space core exposes on a vertical's behalf, such as
+the space.api.v1.space.* backward-compat surface, resolves the target
+module through these hooks at call time instead.
 """
 
 from __future__ import annotations
@@ -49,6 +56,47 @@ def get_api_namespaces() -> list[str]:
 		else:
 			out.append(str(entry))
 	return out
+
+
+def get_compat_module(version: str) -> str | None:
+	"""Dotted module path the space.api.<version>.space.* compat surface delegates to.
+
+	Registered by a vertical app via hooks.py: space_v1_compat_module = "pkg.api.v1.space"
+	(one hook per version: space_v1_compat_module .. space_v4_compat_module).
+	"""
+	hooks = frappe.get_hooks(f"space_{version}_compat_module") or []
+	for entry in hooks:
+		if entry:
+			return str(entry)
+	return None
+
+
+def resolve_compat_function(version: str, fn_name: str) -> Any:
+	module_path = get_compat_module(version)
+	if not module_path:
+		frappe.throw(
+			f"No app has registered space_{version}_compat_module — install a Space vertical "
+			"(e.g. space_cloud) that provides the site-portal API."
+		)
+	return frappe.get_attr(f"{module_path}.{fn_name}")
+
+
+def make_compat_delegates(version: str, fn_names: tuple[str, ...]) -> dict[str, Any]:
+	"""Build whitelisted functions for space.api.<version>.space's `globals()`.
+
+	Each returned function resolves and calls the registered vertical's
+	implementation at request time — used instead of a static import so
+	space core never names a specific vertical app in its own source.
+	"""
+
+	def _make(fn_name: str):
+		def _delegate(*args, **kwargs):
+			return resolve_compat_function(version, fn_name)(*args, **kwargs)
+
+		_delegate.__name__ = fn_name
+		return frappe.whitelist()(_delegate)
+
+	return {fn_name: _make(fn_name) for fn_name in fn_names}
 
 
 def resolve_provider(provider_type: str) -> Any:
