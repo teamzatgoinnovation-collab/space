@@ -91,7 +91,12 @@ def make_compat_delegates(version: str, fn_names: tuple[str, ...]) -> dict[str, 
 
 	def _make(fn_name: str):
 		def _delegate(*args, **kwargs):
-			return resolve_compat_function(version, fn_name)(*args, **kwargs)
+			# frappe.call (not a direct call) filters kwargs down to what the
+			# resolved function actually accepts — request dicts routinely
+			# carry extra keys (cmd, csrf_token, ...) that a target function
+			# like list_subscriptions(), which takes no arguments, would
+			# otherwise reject with a TypeError.
+			return frappe.call(resolve_compat_function(version, fn_name), *args, **kwargs)
 
 		_delegate.__name__ = fn_name
 		return frappe.whitelist()(_delegate)
