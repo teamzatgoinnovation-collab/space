@@ -2,11 +2,26 @@
 
 from __future__ import annotations
 
+import re
+
 import frappe
 from frappe import _
 
 from space.api.v1.response import customer_for_user, fail, ok, require_roles
 from space.services import rate_limit
+
+
+def _plain_text(msg: str) -> str:
+	"""Frappe's own validators (e.g. password strength) raise HTML-formatted
+	messages meant for Desk's msgprint rendering — strip markup before this
+	ever reaches a plain-text API error field."""
+	if not msg:
+		return msg
+	msg = re.sub(r"</(div|li|p|h[1-6])>", ". ", msg, flags=re.I)
+	msg = re.sub(r"<[^>]+>", "", msg)
+	msg = re.sub(r"\s+", " ", msg).strip()
+	msg = re.sub(r"(\.\s*){2,}", ". ", msg)
+	return msg
 
 
 @frappe.whitelist(allow_guest=True)
@@ -69,8 +84,11 @@ def signup(email: str, password: str, full_name: str, company: str | None = None
 		return fail("An account with this email already exists", "EMAIL_TAKEN")
 	except Exception as e:
 		frappe.db.rollback()
-		frappe.log_error(title="Space signup failed")
-		return fail(str(e)[:300] or "Could not create account", "SIGNUP_FAILED")
+		message = _plain_text(str(e))[:300] or "Could not create account"
+		code = "WEAK_PASSWORD" if "password" in message.lower() else "SIGNUP_FAILED"
+		if code == "SIGNUP_FAILED":
+			frappe.log_error(title="Space signup failed")
+		return fail(message, code)
 
 	return ok({"customer": customer.name, "email": email})
 
