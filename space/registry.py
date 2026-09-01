@@ -8,6 +8,7 @@ Other apps (e.g. space_cloud) contribute via hooks.py keys:
   space_dashboard_cards = ["Card Label", ...]
   space_api_namespaces = ["space_cloud.api.v1"]
   space_v1_compat_module = "space_cloud.api.v1.space"
+  space_v1_compat_guest_methods = ["list_catalog"]
 
 Space core never imports a vertical app (e.g. space_cloud) by name —
 that would invert the dependency (verticals require space, not the other
@@ -71,6 +72,28 @@ def get_compat_module(version: str) -> str | None:
 	return None
 
 
+def get_compat_guest_methods(version: str) -> set[str]:
+	"""fn_names within space.api.<version>.space's compat surface that should
+	stay reachable by Guest sessions, because the vertical's own
+	implementation is @frappe.whitelist(allow_guest=True).
+
+	Registered by a vertical app via hooks.py:
+	space_v1_compat_guest_methods = ["list_catalog"]
+	(one hook per version: space_v1_compat_guest_methods .. space_v4_compat_guest_methods)
+
+	The compat delegate is a brand-new function object, not the resolved
+	target — Frappe's dispatcher checks allow_guest on whatever function it
+	calls directly, so the target's own decorator has no effect on the
+	delegate unless mirrored here."""
+	out: set[str] = set()
+	for entry in frappe.get_hooks(f"space_{version}_compat_guest_methods") or []:
+		if isinstance(entry, (list, tuple)):
+			out.update(str(x) for x in entry)
+		else:
+			out.add(str(entry))
+	return out
+
+
 def resolve_compat_function(version: str, fn_name: str) -> Any:
 	module_path = get_compat_module(version)
 	if not module_path:
@@ -89,6 +112,8 @@ def make_compat_delegates(version: str, fn_names: tuple[str, ...]) -> dict[str, 
 	space core never names a specific vertical app in its own source.
 	"""
 
+	guest_methods = get_compat_guest_methods(version)
+
 	def _make(fn_name: str):
 		def _delegate(*args, **kwargs):
 			# frappe.call (not a direct call) filters kwargs down to what the
@@ -101,7 +126,7 @@ def make_compat_delegates(version: str, fn_names: tuple[str, ...]) -> dict[str, 
 		_delegate.__name__ = fn_name
 		_delegate.__qualname__ = fn_name
 		_delegate.__module__ = f"space.api.{version}.space"
-		return frappe.whitelist()(_delegate)
+		return frappe.whitelist(allow_guest=fn_name in guest_methods)(_delegate)
 
 	return {fn_name: _make(fn_name) for fn_name in fn_names}
 
