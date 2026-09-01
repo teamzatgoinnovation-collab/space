@@ -126,8 +126,8 @@ def after_migrate():
 		frappe.db.rollback()
 		try:
 			_ensure_roles()
-			_seed_settings()
 			_seed_plans()
+			_seed_settings()
 			_seed_default_provider()
 			frappe.db.commit()
 		except Exception:
@@ -137,8 +137,8 @@ def after_migrate():
 
 def _seed_all():
 	_ensure_roles()
-	_seed_settings()
 	_seed_plans()
+	_seed_settings()
 	_seed_default_provider()
 	_seed_ticket_categories()
 	_seed_core_number_cards()
