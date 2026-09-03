@@ -62,7 +62,7 @@ DEFAULT_PLANS = [
 		"features": "Multi-site ready\nCustom apps\n5 GB RAM\n30 GB disk\nDedicated onboarding",
 		"is_active": 1,
 		"sort_order": 3,
-		"apps": ["frappe", "erpnext", "hrms", "crm", "zatgo_core", "chat_ai", "tracker", "helpdesk", "telephony"],
+		"apps": ["frappe", "erpnext", "hrms", "crm", "zatgo_core", "chat_ai", "tracker"],
 	},
 ]
 
