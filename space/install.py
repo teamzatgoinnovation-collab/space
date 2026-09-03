@@ -32,7 +32,7 @@ DEFAULT_PLANS = [
 		"features": "1 site\nERPNext core\n1 GB RAM\n5 GB disk\nCommunity support",
 		"is_active": 1,
 		"sort_order": 1,
-		"apps": ["frappe", "erpnext"],
+		"apps": ["frappe", "erpnext", "zatgo_core"],
 	},
 	{
 		"code": "pro",
@@ -47,7 +47,7 @@ DEFAULT_PLANS = [
 		"features": "1 site\nERPNext + apps\n3 GB RAM\n15 GB disk\nPriority support",
 		"is_active": 1,
 		"sort_order": 2,
-		"apps": ["frappe", "erpnext", "hrms"],
+		"apps": ["frappe", "erpnext", "hrms", "zatgo_core"],
 	},
 	{
 		"code": "enterprise",
