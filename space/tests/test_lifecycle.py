@@ -449,5 +449,52 @@ class LifecycleCase(FrappeTestCase):
 		self.assertGreaterEqual(mid, before)
 
 
+class TestBackfill(LifecycleCase):
+	"""The rollout backfill: existing customer sites get a trial; real company sites that Space merely tracks do not."""
+
+	def _state(self, sub):
+		return frappe.db.get_value("Space Subscription", sub, ["lifecycle_status", "trial_started_at", "trial_ends_at"], as_dict=True)
+
+	def test_paid_plan_gets_a_fresh_30_day_trial_free_plan_stays_active(self):
+		free_site, free_sub = self._site(self.customer, self._plan(price=0))
+		counts = lc.backfill_missing(T0)
+		self.assertGreaterEqual(counts["trial"], 1)
+		paid = self._state(self.sub)
+		self.assertEqual(paid.lifecycle_status, lc.TRIAL)
+		self.assertEqual(lc.as_utc(paid.trial_ends_at), T0 + timedelta(days=30))
+		self.assertEqual(self._state(free_sub).lifecycle_status, lc.ACTIVE)
+		self.assertIsNone(self._state(free_sub).trial_ends_at)
+
+	def test_protected_sites_never_get_a_trial_clock(self):
+		domain = frappe.db.get_value("Space Site", self.site, "domain")
+		frappe.db.set_single_value("Space Settings", "protected_domains", f"other.example.com\n{domain}")
+		counts = lc.backfill_missing(T0)
+		self.assertEqual(self._state(self.sub).lifecycle_status, "")
+		self.assertGreaterEqual(counts["skipped_protected"], 1)
+
+	def test_a_subscription_shared_with_a_protected_site_is_skipped(self):
+		# kasibasia + democompanysa share one subscription: protecting either protects both.
+		second = frappe.get_doc({"doctype": "Space Site", "site_name": f"s{random_string(6).lower()}", "customer": self.customer,
+			"server": self._server(), "plan": self.plan, "subscription": self.sub, "status": "Active"}).insert(ignore_permissions=True)
+		frappe.db.set_single_value("Space Settings", "protected_domains", second.domain)
+		lc.backfill_missing(T0)
+		self.assertEqual(self._state(self.sub).lifecycle_status, "")
+
+	def test_sites_that_are_not_live_are_skipped(self):
+		for status in ("Deleted", "Failed", "Draft", "Provisioning"):
+			frappe.db.set_value("Space Site", self.site, "status", status)
+			lc.backfill_missing(T0)
+			self.assertEqual(self._state(self.sub).lifecycle_status, "", status)
+
+	def test_backfill_is_idempotent_and_pushes_nothing(self):
+		lc.backfill_missing(T0)
+		first = self._state(self.sub)
+		again = lc.backfill_missing(T0 + timedelta(days=3))
+		self.assertEqual(self._state(self.sub), first)  # trial dates did not move
+		self.assertEqual(again["trial"], 0)
+		self.assertEqual(self.pushed, [])
+		self.assertEqual(self.sent, [])
+
+
 if __name__ == "__main__":
 	unittest.main()

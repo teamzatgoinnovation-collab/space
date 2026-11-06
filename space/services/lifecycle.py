@@ -416,6 +416,42 @@ def _payment_history_ready() -> bool:
 		return False
 
 
+LIVE_FOR_BACKFILL = ("Active", "Suspended")
+
+
+def backfill_missing(now: datetime | None = None) -> dict[str, int]:
+	"""Give every existing subscription without a lifecycle state one: a fresh 30-day trial that starts now (an
+	ACTIVE state for a plan that costs nothing). Idempotent -- a subscription that has a state is left alone.
+
+	Skipped on purpose: subscriptions with no live site (deleted, failed, still provisioning: provisioning starts
+	its own trial) and any subscription that has even ONE protected site -- the real company sites that Space
+	merely tracks (Space Settings > Protected Domains) must never get a trial clock. Pushes nothing to tenants:
+	enforcement is a separate, explicit switch."""
+	now = now or utcnow()
+	protected = protected_domains()
+	counts = {"trial": 0, "active_free": 0, "skipped_protected": 0, "skipped_not_live": 0}
+	pending = frappe.get_all("Space Subscription", filters={"lifecycle_status": ("in", ("", None))}, fields=["name", "plan"])
+	for sub in pending:
+		sites = frappe.get_all("Space Site", filters={"subscription": sub.name}, fields=["name", "domain", "status"])
+		if any((s.domain or "").lower() in protected or (s.name or "").lower() in protected for s in sites):
+			counts["skipped_protected"] += 1
+			continue
+		if not any(s.status in LIVE_FOR_BACKFILL for s in sites):
+			counts["skipped_not_live"] += 1
+			continue
+		price = float(frappe.db.get_value("Space Plan", sub.plan, "monthly_price") or 0) if sub.plan else 0
+		days = settings()["trial_days_default"]
+		fields: dict[str, Any] = {"trial_started_at": now}
+		if price:
+			fields.update(trial_ends_at=now + timedelta(days=days), trial_ends_on=(now + timedelta(days=days)).date())
+		frappe.db.set_value("Space Subscription", sub.name, fields)
+		transition(sub.name, TRIAL if price else ACTIVE, reason="rollout backfill", push=False)
+		counts["trial" if price else "active_free"] += 1
+		record_event("trial_started", subscription=sub.name, site=sites[0].name if sites else None,
+			dedupe_key=f"backfill:{sub.name}", details={"note": "rollout backfill", "paid_plan": bool(price)})
+	return counts
+
+
 def view(subscription: str, now: datetime | None = None) -> dict[str, Any]:
 	"""One customer's picture of a site (dashboard + admin card)."""
 	now = now or utcnow()

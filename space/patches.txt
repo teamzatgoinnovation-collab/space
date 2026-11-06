@@ -1,2 +1,5 @@
+[pre_model_sync]
 space.patches.v0_5.migrate_to_space_cloud
-space.patches.v0_6.backfill_lifecycle
+
+[post_model_sync]
+space.patches.v0_6.backfill_lifecycle_after_sync
