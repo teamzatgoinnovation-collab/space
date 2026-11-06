@@ -17,6 +17,8 @@ def process_subscription_expiry():
 		pluck="name",
 	):
 		sub = frappe.get_doc("Space Subscription", sub_name)
+		if sub.get("lifecycle_status"):
+			continue  # owned by the lifecycle engine (space/jobs/lifecycle.py)
 		changed = False
 		end = getdate(sub.end_date) if sub.end_date else None
 		trial_end = getdate(sub.trial_ends_on) if sub.trial_ends_on else None

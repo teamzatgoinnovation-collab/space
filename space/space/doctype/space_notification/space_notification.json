@@ -26,7 +26,7 @@
    "fieldname": "event_type",
    "fieldtype": "Select",
    "label": "Event",
-   "options": "Site Created\nSite Suspended\nSite Deleted\nBackup Finished\nBackup Failed\nSubscription Expired\nDeployment Failed\nSSL Expired\nAccount Created\nSite Resumed\nPlan Changed\nGeneric",
+   "options": "Site Created\nSite Suspended\nSite Deleted\nBackup Finished\nBackup Failed\nSubscription Expired\nDeployment Failed\nSSL Expired\nAccount Created\nSite Resumed\nPlan Changed\nTrial Ending\nPayment Received\nInactivity Warning\nDeletion Cancelled\nGeneric",
    "default": "Generic",
    "in_list_view": 1
   },
@@ -75,7 +75,7 @@
   }
  ],
  "links": [],
- "modified": "2026-07-24 12:00:00.000000",
+ "modified": "2026-11-06 20:00:00.000000",
  "module": "Space",
  "name": "Space Notification",
  "permissions": [

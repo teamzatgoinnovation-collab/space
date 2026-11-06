@@ -1,0 +1,26 @@
+{
+ "actions": [],
+ "autoname": "field:site",
+ "creation": "2026-11-06 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["site", "customer", "reason"],
+ "fields": [
+  {"fieldname": "site", "fieldtype": "Data", "label": "Site", "reqd": 1, "unique": 1, "in_list_view": 1},
+  {"fieldname": "customer", "fieldtype": "Link", "label": "Customer", "options": "Space Customer", "in_list_view": 1},
+  {"fieldname": "reason", "fieldtype": "Small Text", "label": "Reason", "reqd": 1}
+ ],
+ "links": [],
+ "modified": "2026-11-06 20:00:00.000000",
+ "module": "Space",
+ "name": "Space Deletion Exclusion",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "export": 1, "report": 1},
+  {"role": "Space Admin", "read": 1, "write": 1, "create": 1, "delete": 1, "report": 1}
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -18,7 +18,22 @@
   "renewal",
   "billing_section",
   "last_invoice",
-  "notes"
+  "notes",
+  "lifecycle_section",
+  "lifecycle_status",
+  "trial_started_at",
+  "trial_ends_at",
+  "paid_until",
+  "next_billing_date",
+  "lifecycle_col",
+  "last_activity_at",
+  "inactivity_warning_sent_at",
+  "deletion_scheduled_at",
+  "deletion_hold",
+  "deletion_hold_reason",
+  "pre_deletion_status",
+  "activity_checked_at",
+  "deletion_manual"
  ],
  "fields": [
   {
@@ -109,10 +124,98 @@
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "lifecycle_section",
+   "fieldtype": "Section Break",
+   "label": "Lifecycle"
+  },
+  {
+   "fieldname": "lifecycle_status",
+   "fieldtype": "Select",
+   "label": "Lifecycle Status",
+   "options": "\nTRIAL\nACTIVE\nEXPIRED\nSUSPENDED\nPENDING_PAYMENT\nDELETION_SCHEDULED\nDELETED",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "description": "Written only by space.services.lifecycle.transition"
+  },
+  {
+   "fieldname": "trial_started_at",
+   "fieldtype": "Datetime",
+   "label": "Trial Started (UTC)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trial_ends_at",
+   "fieldtype": "Datetime",
+   "label": "Trial Ends (UTC)"
+  },
+  {
+   "fieldname": "paid_until",
+   "fieldtype": "Datetime",
+   "label": "Paid Until (UTC)"
+  },
+  {
+   "fieldname": "next_billing_date",
+   "fieldtype": "Date",
+   "label": "Next Billing Date"
+  },
+  {
+   "fieldname": "lifecycle_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_activity_at",
+   "fieldtype": "Datetime",
+   "label": "Last User Activity (UTC)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "inactivity_warning_sent_at",
+   "fieldtype": "Datetime",
+   "label": "Inactivity Warning Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deletion_scheduled_at",
+   "fieldtype": "Datetime",
+   "label": "Deletion Scheduled For (UTC)"
+  },
+  {
+   "fieldname": "deletion_hold",
+   "fieldtype": "Check",
+   "label": "Deletion Hold",
+   "default": "0",
+   "description": "Admin protection: never delete this site automatically"
+  },
+  {
+   "fieldname": "deletion_hold_reason",
+   "fieldtype": "Small Text",
+   "label": "Hold Reason"
+  },
+  {
+   "fieldname": "pre_deletion_status",
+   "fieldtype": "Data",
+   "label": "Status Before Deletion Scheduling",
+   "read_only": 1
+  },
+  {
+   "fieldname": "activity_checked_at",
+   "fieldtype": "Datetime",
+   "label": "Activity Last Checked (UTC)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deletion_manual",
+   "fieldtype": "Check",
+   "label": "Deletion Scheduled By Admin",
+   "default": "0",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2026-07-24 12:00:00.000000",
+ "modified": "2026-11-06 20:00:00.000000",
  "module": "Space",
  "name": "Space Subscription",
  "permissions": [

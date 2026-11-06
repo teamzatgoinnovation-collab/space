@@ -1,0 +1,33 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-06 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["subscription", "site", "kind", "status", "dedupe_key", "recipient", "retry_count", "next_retry_at", "actor", "details"],
+ "fields": [
+  {"fieldname": "subscription", "fieldtype": "Link", "label": "Subscription", "options": "Space Subscription", "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "site", "fieldtype": "Data", "label": "Site", "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "kind", "fieldtype": "Select", "label": "Kind", "options": "transition\ntrial_started\ntrial_ending_email\ninactivity_warning_email\npayment\nactivity_checked\ndeletion_scheduled\ndeletion_cancelled\ndeletion_dry_run\ndeletion_started\ndeletion_stage\ndeletion_completed\ndeletion_failed\nadmin_action\nstate_pushed", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Done\nPending\nSent\nFailed\nSkipped", "default": "Done", "in_list_view": 1},
+  {"fieldname": "dedupe_key", "fieldtype": "Data", "label": "Dedupe Key", "unique": 1, "description": "One row per (subscription, kind, cycle): a second insert is refused by the database"},
+  {"fieldname": "recipient", "fieldtype": "Data", "label": "Recipient"},
+  {"fieldname": "retry_count", "fieldtype": "Int", "label": "Retries", "default": "0"},
+  {"fieldname": "next_retry_at", "fieldtype": "Datetime", "label": "Next Retry"},
+  {"fieldname": "actor", "fieldtype": "Data", "label": "Actor"},
+  {"fieldname": "details", "fieldtype": "Long Text", "label": "Details"}
+ ],
+ "links": [],
+ "modified": "2026-11-06 20:00:00.000000",
+ "module": "Space",
+ "name": "Space Lifecycle Event",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "export": 1, "report": 1},
+  {"role": "Space Admin", "read": 1, "report": 1, "export": 1},
+  {"role": "Space Operator", "read": 1, "report": 1}
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -38,7 +38,16 @@
   "rate_limit_per_minute",
   "github_section",
   "github_org",
-  "github_pat"
+  "github_pat",
+  "lifecycle_section",
+  "lifecycle_enforcement_enabled",
+  "auto_deletion_enabled",
+  "trial_days_default",
+  "payment_grace_days",
+  "lifecycle_col",
+  "inactivity_warning_days",
+  "inactivity_delete_days",
+  "protected_domains"
  ],
  "fields": [
   {
@@ -236,10 +245,63 @@
    "fieldtype": "Password",
    "label": "GitHub PAT (repo:read, fine-grained)",
    "description": "Used only to list/read repo contents for app discovery — never write access. Leave blank to disable GitHub discovery (bench manager still works with bench-only apps)."
+  },
+  {
+   "fieldname": "lifecycle_section",
+   "fieldtype": "Section Break",
+   "label": "Trial, read-only mode and inactivity deletion"
+  },
+  {
+   "fieldname": "lifecycle_enforcement_enabled",
+   "fieldtype": "Check",
+   "label": "Enforce read-only mode on customer sites",
+   "default": "0",
+   "description": "Off: sites are never restricted. On: expired-trial / unpaid sites become read-only."
+  },
+  {
+   "fieldname": "auto_deletion_enabled",
+   "fieldtype": "Check",
+   "label": "Delete inactive sites automatically",
+   "default": "0",
+   "description": "Off = dry run: the scheduler only logs what it would delete."
+  },
+  {
+   "fieldname": "trial_days_default",
+   "fieldtype": "Int",
+   "label": "Free Trial Days",
+   "default": "30"
+  },
+  {
+   "fieldname": "payment_grace_days",
+   "fieldtype": "Int",
+   "label": "Payment Grace Days",
+   "default": "3"
+  },
+  {
+   "fieldname": "lifecycle_col",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inactivity_warning_days",
+   "fieldtype": "Int",
+   "label": "Inactivity Warning After (days)",
+   "default": "10"
+  },
+  {
+   "fieldname": "inactivity_delete_days",
+   "fieldtype": "Int",
+   "label": "Inactivity Deletion After (days)",
+   "default": "15"
+  },
+  {
+   "fieldname": "protected_domains",
+   "fieldtype": "Small Text",
+   "label": "Protected Domains",
+   "description": "One per line: never deleted (the portal itself, shared sites)"
   }
  ],
  "links": [],
- "modified": "2026-07-24 12:00:00.000000",
+ "modified": "2026-11-06 20:00:00.000000",
  "module": "Space",
  "name": "Space Settings",
  "permissions": [

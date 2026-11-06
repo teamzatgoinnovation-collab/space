@@ -27,7 +27,11 @@ add_to_apps_screen = [
 # space_dashboard_cards / space_api_namespaces
 
 scheduler_events = {
+	"hourly": [
+		"space.jobs.lifecycle.run_hourly",
+	],
 	"daily": [
+		"space.jobs.lifecycle.refresh_activity_all",
 		"space.jobs.billing.process_subscription_expiry",
 		"space.services.licenses.expire_licenses",
 		"space.services.automation.run_daily_automation",
