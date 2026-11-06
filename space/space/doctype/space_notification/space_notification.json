@@ -26,7 +26,7 @@
    "fieldname": "event_type",
    "fieldtype": "Select",
    "label": "Event",
-   "options": "Site Created\nSite Suspended\nSite Deleted\nBackup Finished\nBackup Failed\nSubscription Expired\nDeployment Failed\nSSL Expired\nGeneric",
+   "options": "Site Created\nSite Suspended\nSite Deleted\nBackup Finished\nBackup Failed\nSubscription Expired\nDeployment Failed\nSSL Expired\nAccount Created\nSite Resumed\nPlan Changed\nGeneric",
    "default": "Generic",
    "in_list_view": 1
   },

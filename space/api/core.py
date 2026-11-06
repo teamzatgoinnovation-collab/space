@@ -79,6 +79,17 @@ def signup(email: str, password: str, full_name: str, company: str | None = None
 		)
 		customer.insert(ignore_permissions=True)
 		frappe.db.commit()
+		try:
+			from space.services import notifications
+
+			notifications.notify(
+				title=f"New account: {full_name}",
+				event_type="account_created",
+				message=f"{full_name} <{email}>" + (f", {company}" if company else ""),
+				customer=customer.name,
+			)
+		except Exception:
+			frappe.log_error(title="Space signup notification failed")
 	except frappe.DuplicateEntryError:
 		frappe.db.rollback()
 		return fail("An account with this email already exists", "EMAIL_TAKEN")
