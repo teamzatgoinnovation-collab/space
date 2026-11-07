@@ -8,8 +8,8 @@ from every state). Each move leaves a `Space Lifecycle Event`. All dates are UTC
 ## States and money
 
 - **Trial**: 30 days (Space Settings > Free Trial Days) from the moment provisioning succeeds
-  (`space_cloud/jobs/provision.py` -> `start_trial`). A plan that costs 0 is ACTIVE and never restricted (open product
-  decision: it is also never deleted for inactivity). Moving a free site to a paid plan (`Space Subscription.change_plan`)
+  (`space_cloud/jobs/provision.py` -> `start_trial`). A plan that costs 0 is ACTIVE and never restricted
+  (decided 2026-11-07: free plans stay free -- they are also never deleted for inactivity). Moving a free site to a paid plan (`Space Subscription.change_plan`)
   starts a fresh trial on the paid plan; paid -> free ends the clock.
 - **Payment**: the portal verifies the provider itself, then calls `space.api.lifecycle.record_payment` (service
   credential). One month (30 days) per verified payment, stacking on what is left; idempotent on provider + payment id
