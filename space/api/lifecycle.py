@@ -129,34 +129,43 @@ def set_hold(site: str, hold: int, reason: str):
 
 @frappe.whitelist()
 def schedule_deletion(site: str, days: int, confirm_site: str, reason: str):
-	"""Admin schedules a deletion. The admin must type the site name; the customer is emailed first and the
-	schedule is refused if that email could not be sent."""
+	"""Admin schedules a deletion. The admin must type the site name; the customer is emailed first and the schedule
+	is refused if that email could not be queued. It is an explicit admin decision: it runs at the due time even with
+	"Delete inactive sites automatically" off, and does not depend on the site's activity -- but the same shields apply
+	(hold, exclusion, protected domain, same customer, the notice confirmed delivered), and a payment made after the
+	schedule cancels it."""
 	sub = _admin("lifecycle_schedule_deletion", site, days=days, reason=reason)
 	if confirm_site != site:
 		return fail("Type the site name to confirm", "CONFIRMATION_MISMATCH")
 	days = int(days)
 	if days < 1 or days > 90:
 		return fail("Schedule 1 to 90 days ahead", "INVALID_DAYS")
+	if frappe.db.get_value("Space Subscription", sub, "lifecycle_status") in (None, "", lc.DELETED):
+		return fail("This site has no active lifecycle state", "NOT_SCHEDULABLE")
 	row = frappe.db.get_value("Space Site", site, ["domain", "customer", "status"], as_dict=True)
 	if (row.domain or "").lower() in lc.protected_domains():
 		return fail("This site is protected", "PROTECTED")
-	when = lc.utcnow() + timedelta(days=days)
+	when = (lc.utcnow() + timedelta(days=days)).replace(microsecond=0)
 	email = frappe.db.get_value("Space Customer", row.customer, "email")
+	notice_key = f"manual_deletion:{sub}:{when.isoformat()}"
 	result = mail.send_once(
 		kind="inactivity_warning_email", subscription=sub, site=site,
-		dedupe_key=f"manual_deletion:{sub}:{when.isoformat()}", recipient=email,
+		dedupe_key=notice_key, recipient=email,
 		subject=f"[ZatGo Space] {row.domain} is scheduled for deletion on {when:%Y-%m-%d}",
 		heading="Your site is scheduled for deletion",
 		body="An administrator has scheduled this site for deletion.",
 		rows=[("Site name", site), ("Site URL", f"https://{row.domain}"), ("Scheduled deletion (UTC)", when.strftime("%Y-%m-%d %H:%M"))],
 		advice="Download a backup from your ZatGo Space dashboard now: a deleted site cannot be recovered.",
 	)
-	if result != "Sent":
+	if result not in ("Pending", "Sent"):
 		return fail(f"The customer could not be emailed ({result}); nothing was scheduled", "EMAIL_NOT_SENT")
+	notice = lc.event_by_key(notice_key)
 	lc.transition(sub, lc.DELETION_SCHEDULED, reason=f"admin schedule: {reason}", actor=frappe.session.user,
 		deletion_scheduled_at=when, deletion_manual=1, inactivity_warning_sent_at=lc.utcnow())
 	lc.record_event("deletion_scheduled", subscription=sub, site=site, actor=frappe.session.user,
-		dedupe_key=f"deletion_scheduled:{sub}:{when.isoformat()}", details={"manual": True, "at": str(when)})
+		dedupe_key=f"deletion_scheduled:{sub}:{when.isoformat()}",
+		details={"manual": True, "at": str(when), "customer": row.customer, "recipient": email,
+		         "warning_event": notice.name if notice else None, "reason": reason})
 	return ok(lc.view(sub))
 
 

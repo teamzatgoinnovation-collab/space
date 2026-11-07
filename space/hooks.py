@@ -27,11 +27,14 @@ add_to_apps_screen = [
 # space_dashboard_cards / space_api_namespaces
 
 scheduler_events = {
-	"hourly": [
+	# These talk to tenant sites (one bench command each): the long queue, not the 5-minute default one.
+	"hourly_long": [
 		"space.jobs.lifecycle.run_hourly",
 	],
-	"daily": [
+	"daily_long": [
 		"space.jobs.lifecycle.refresh_activity_all",
+	],
+	"daily": [
 		"space.jobs.billing.process_subscription_expiry",
 		"space.services.licenses.expire_licenses",
 		"space.services.automation.run_daily_automation",

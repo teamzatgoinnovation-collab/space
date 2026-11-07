@@ -28,6 +28,14 @@ class SpaceSubscription(Document):
 	def change_plan(self, plan):
 		if not frappe.db.exists("Space Plan", plan):
 			frappe.throw("Unknown plan")
+		old_plan = self.plan
 		self.plan = plan
 		self.save()
+		if old_plan != plan:
+			try:  # the lifecycle must follow the plan (free -> paid starts a trial, paid -> free ends the clock)
+				from space.services import lifecycle
+
+				lifecycle.on_plan_changed(self.name, old_plan, plan)
+			except Exception:
+				frappe.log_error(title="Space lifecycle: plan change follow-up failed")
 		return {"ok": True, "plan": plan}

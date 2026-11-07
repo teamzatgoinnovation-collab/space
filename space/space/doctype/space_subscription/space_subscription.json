@@ -33,7 +33,9 @@
   "deletion_hold_reason",
   "pre_deletion_status",
   "activity_checked_at",
-  "deletion_manual"
+  "deletion_manual",
+  "tenant_state_hash",
+  "tenant_state_pushed_at"
  ],
  "fields": [
   {
@@ -212,10 +214,23 @@
    "label": "Deletion Scheduled By Admin",
    "default": "0",
    "read_only": 1
+  },
+  {
+   "fieldname": "tenant_state_hash",
+   "fieldtype": "Data",
+   "label": "Tenant State Hash",
+   "read_only": 1,
+   "description": "Hash of the state last pushed to the tenant site"
+  },
+  {
+   "fieldname": "tenant_state_pushed_at",
+   "fieldtype": "Datetime",
+   "label": "Tenant State Pushed (UTC)",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2026-11-06 20:00:00.000000",
+ "modified": "2026-11-07 02:00:00.000000",
  "module": "Space",
  "name": "Space Subscription",
  "permissions": [
