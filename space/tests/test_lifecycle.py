@@ -50,10 +50,20 @@ class TestPureRules(unittest.TestCase):
 		self.assertEqual(lc.next_paid_until(T0 + timedelta(days=10), T0), T0 + timedelta(days=40))
 		self.assertEqual(lc.next_paid_until(T0 - timedelta(days=10), T0), T0 + timedelta(days=30))  # never from the past
 
+	def test_a_year_is_365_days_and_a_month_is_30(self):
+		self.assertEqual(lc.next_paid_until(None, T0, months=12), T0 + timedelta(days=365))
+		self.assertEqual(lc.next_paid_until(T0 + timedelta(days=10), T0, months=12), T0 + timedelta(days=375))
+		self.assertEqual(lc.next_paid_until(None, T0, months=14), T0 + timedelta(days=365 + 60))
+
+	def test_period_defaults_to_monthly_for_anything_unknown(self):
+		self.assertEqual(lc.period_of({"billing_period": "Yearly"}), "Yearly")
+		for v in (None, "", "Weekly", {}, {"billing_period": None}):
+			self.assertEqual(lc.period_of(v), "Monthly", v)
+
 	def test_state_hash_ignores_the_timestamp_but_not_the_state(self):
 		a = {"enforcement_on": 1, "status": "TRIAL", "grace_days": 3, "synced_at": "t1"}
 		self.assertEqual(lc.state_hash(a), lc.state_hash({**a, "synced_at": "t2"}))
-		for change in ({"status": "EXPIRED"}, {"enforcement_on": 0}, {"grace_days": 5}):
+		for change in ({"status": "EXPIRED"}, {"enforcement_on": 0}, {"grace_days": 5}, {"billing_period": "Yearly"}):
 			self.assertNotEqual(lc.state_hash(a), lc.state_hash({**a, **change}), change)
 
 	def _decide(self, **kw):
@@ -869,3 +879,117 @@ class TestBackfill(LifecycleBase):
 
 if __name__ == "__main__":
 	unittest.main()
+
+
+# --- billing period (Monthly / Yearly) and the badge on every site ----------------------------------------------------
+
+class TestBillingPeriod(LifecycleBase):
+	def _yearly_plan(self, monthly=49, yearly=490):
+		code = f"y{random_string(6).lower()}"
+		return frappe.get_doc({"doctype": "Space Plan", "code": code, "title": code, "monthly_price": monthly,
+			"yearly_price": yearly, "is_active": 1, "trial_days": 14}).insert(ignore_permissions=True).name
+
+	def _yearly_site(self):
+		plan = self._yearly_plan()
+		site, sub = self._site(self.customer, plan)
+		lc.start_trial(sub, started_at=T0)
+		return site, sub
+
+	def test_new_subscriptions_are_monthly_and_the_view_says_so(self):
+		self._start()
+		v = lc.view(self.sub, T0)
+		self.assertEqual(v["billing_period"], "Monthly")
+		self.assertEqual(v["period_price"], 49)
+		self.assertFalse(v["protected"])
+
+	def test_admin_sets_yearly_and_a_payment_buys_a_year(self):
+		site, sub = self._yearly_site()
+		self.assertEqual(lc.set_billing_period(sub, "Yearly", reason="annual deal", actor="Administrator"), "Yearly")
+		v = lc.view(sub, T0)
+		self.assertEqual((v["billing_period"], v["period_price"], v["yearly_price"]), ("Yearly", 490, 490))
+		res = lc.record_payment(sub, provider="moyasar", payment_id="yr_1", amount=490, currency="SAR", months=1)
+		self.assertEqual(res["months"], 12)  # the caller's months is ignored: the period decides
+		paid = lc.as_utc(frappe.db.get_value("Space Subscription", sub, "paid_until"))
+		self.assertGreaterEqual(paid - lc.utcnow(), timedelta(days=364))
+		again = lc.record_payment(sub, provider="moyasar", payment_id="yr_1", amount=490, currency="SAR")
+		self.assertFalse(again["applied"])  # still idempotent
+		self.assertEqual(lc.as_utc(frappe.db.get_value("Space Subscription", sub, "paid_until")), paid)
+
+	def test_a_monthly_payment_still_buys_a_month(self):
+		self._start()
+		res = lc.record_payment(self.sub, provider="moyasar", payment_id="m_1", amount=49, currency="SAR", months=12)
+		self.assertEqual(res["months"], 1)  # a caller cannot ask for a year on a monthly site
+
+	def test_changing_the_period_does_not_touch_what_is_already_paid(self):
+		site, sub = self._yearly_site()
+		lc.record_payment(sub, provider="moyasar", payment_id="m_a", amount=49, currency="SAR")
+		before = frappe.db.get_value("Space Subscription", sub, "paid_until")
+		lc.set_billing_period(sub, "Yearly", reason="switch", actor="Administrator")
+		self.assertEqual(frappe.db.get_value("Space Subscription", sub, "paid_until"), before)
+
+	def test_set_period_is_validated(self):
+		site, sub = self._yearly_site()
+		with self.assertRaises(frappe.ValidationError):
+			lc.set_billing_period(sub, "Weekly", reason="x")
+		no_yearly, sub2 = self._site(self.customer, self._yearly_plan(monthly=49, yearly=0))
+		with self.assertRaises(frappe.ValidationError):
+			lc.set_billing_period(sub2, "Yearly", reason="x")  # no yearly price on the plan
+		free_site, sub3 = self._site(self.customer, self._yearly_plan(monthly=0, yearly=0))
+		with self.assertRaises(frappe.ValidationError):
+			lc.set_billing_period(sub3, "Yearly", reason="x")  # a free plan has nothing to bill
+		lc.transition(sub, lc.DELETED, reason="t", push=False)
+		with self.assertRaises(frappe.ValidationError):
+			lc.set_billing_period(sub, "Yearly", reason="x")
+
+	def test_set_period_is_audited_pushed_and_idempotent(self):
+		site, sub = self._yearly_site()
+		self.pushed.clear()
+		lc.set_billing_period(sub, "Yearly", reason="annual deal", actor="Administrator")
+		self.assertTrue(frappe.db.exists("Space Lifecycle Event", {"subscription": sub, "kind": "admin_action"}))
+		self.assertEqual(self.pushed[-1][1]["billing_period"], "Yearly")
+		n = len(self.pushed)
+		lc.set_billing_period(sub, "Yearly", reason="again", actor="Administrator")  # no change: nothing sent
+		self.assertEqual(len(self.pushed), n)
+
+	def test_a_period_change_makes_reconcile_resend(self):
+		site, sub = self._yearly_site()
+		lc.push_state(sub)
+		self.assertEqual(lc.reconcile_pushes(now=lc.utcnow())["unchanged"] >= 1, True)
+		frappe.db.set_value("Space Subscription", sub, "billing_period", "Yearly")
+		self.pushed.clear()
+		lc.reconcile_pushes(now=lc.utcnow())
+		self.assertTrue(any(p[1].get("billing_period") == "Yearly" for p in self.pushed))
+
+	def test_the_api_requires_an_admin_and_a_reason(self):
+		from space.api import lifecycle as api
+		site, sub = self._yearly_site()
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			api.set_billing_period(site, "Yearly", "r")
+		frappe.set_user("Administrator")
+		out = api.set_billing_period(site, "Yearly", "annual deal")
+		self.assertEqual(out["data"]["billing_period"], "Yearly")
+
+	def test_protected_sites_show_active_and_nothing_is_written(self):
+		from space.api import lifecycle as api
+		site, sub = self._yearly_site()
+		domain = frappe.db.get_value("Space Site", site, "domain")
+		frappe.db.set_value("Space Subscription", sub, "lifecycle_status", None)  # a legacy row with no state
+		frappe.db.set_single_value("Space Settings", "protected_domains", domain or site)
+		v = api.get_lifecycle(site)["data"]
+		self.assertEqual((v["lifecycle_status"], v["protected"], v["read_only"]), ("ACTIVE", True, False))
+		self.assertIn(site, api.list_lifecycle()["data"])
+		self.assertFalse(frappe.db.get_value("Space Subscription", sub, "lifecycle_status"))  # display only
+		self.assertEqual(lc.backfill_missing()["skipped_protected"] >= 1, True)  # still no trial clock
+
+	def test_protected_tenant_gets_an_informational_state_that_enforces_nothing(self):
+		site, sub = self._yearly_site()
+		frappe.db.set_value("Space Subscription", sub, "lifecycle_status", None)
+		domain = frappe.db.get_value("Space Site", site, "domain")
+		frappe.db.set_single_value("Space Settings", "protected_domains", domain or site)
+		self.pushed.clear()
+		lc.reconcile_protected()
+		pushed = [p for p in self.pushed if p[0] == site]
+		self.assertTrue(pushed)
+		self.assertEqual(pushed[0][1]["enforcement_on"], 0)
+		self.assertEqual(pushed[0][1]["status"], "ACTIVE")

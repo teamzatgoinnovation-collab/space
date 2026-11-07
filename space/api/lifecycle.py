@@ -51,20 +51,42 @@ def _admin(action: str, site: str, **details) -> str:
 
 # --- customer ----------------------------------------------------------------------------------------------------
 
+def _own_site_or_admin(site: str) -> None:
+	if not frappe.db.exists("Space Site", site):
+		frappe.throw("Site not found", frappe.DoesNotExistError)
+	if _is_admin():
+		return
+	owner = frappe.db.get_value("Space Site", site, "customer")
+	if not owner or owner != customer_for_user():
+		audit.log_audit("lifecycle_access_denied", result="Denied", ref_doctype="Space Site", ref_name=site)
+		frappe.throw("Not permitted", frappe.PermissionError)
+
+
 @frappe.whitelist()
 def get_lifecycle(site: str):
-	return ok(lc.view(_ensure_access(site)))
+	_own_site_or_admin(site)
+	sub = lc.subscription_for_site(site)
+	if sub and frappe.db.get_value("Space Subscription", sub, "lifecycle_status"):
+		return ok(lc.view(sub))
+	if lc.is_protected_site(site):
+		return ok(lc.protected_view(site))  # a real company site: neutral ACTIVE badge, no clock
+	if not sub:
+		frappe.throw("This site has no subscription")
+	return ok(lc.view(sub))
 
 
 @frappe.whitelist()
 def list_lifecycle():
-	"""One call for the dashboard: the lifecycle picture of every site the caller owns (all, for an admin)."""
+	"""One call for the dashboard: the lifecycle picture of every site the caller owns (all, for an admin). Protected
+	company sites are included with a neutral ACTIVE badge, so every site shows one."""
 	filters = {} if _is_admin() else {"customer": customer_for_user() or "__none__"}
 	out = {}
 	for site in frappe.get_all("Space Site", filters=filters, pluck="name"):
 		sub = lc.subscription_for_site(site)
 		if sub and frappe.db.get_value("Space Subscription", sub, "lifecycle_status"):
 			out[site] = lc.view(sub)
+		elif lc.is_protected_site(site):
+			out[site] = lc.protected_view(site)
 	return ok(out)
 
 
@@ -96,6 +118,14 @@ def extend_trial(site: str, days: int, reason: str):
 def activate(site: str, months: int, reason: str):
 	sub = _admin("lifecycle_activate", site, months=months, reason=reason)
 	lc.admin_activate(sub, int(months), reason=reason, actor=frappe.session.user)
+	return ok(lc.view(sub))
+
+
+@frappe.whitelist()
+def set_billing_period(site: str, period: str, reason: str):
+	"""Admin: bill this site Monthly or Yearly (applies from the next payment)."""
+	sub = _admin("lifecycle_set_billing_period", site, period=period, reason=reason)
+	lc.set_billing_period(sub, period, reason=reason, actor=frappe.session.user)
 	return ok(lc.view(sub))
 
 

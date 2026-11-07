@@ -61,6 +61,10 @@ DEFAULTS = {
 }
 
 LIVE_SITE_STATUSES = ("Active", "Suspended")
+
+# Billing period an admin sets per site. One verified payment buys one period.
+MONTHLY, YEARLY = "Monthly", "Yearly"
+PERIOD_MONTHS = {MONTHLY: 1, YEARLY: 12}
 PUSH_HEARTBEAT = timedelta(hours=24)
 
 
@@ -112,11 +116,27 @@ def is_paid(paid_until: Any, now: datetime | None = None) -> bool:
 
 
 def next_paid_until(current_paid_until: Any, now: datetime | None = None, months: int = 1) -> datetime:
-	"""A verified payment buys `months` of 30 days on top of whatever is left (never from the past)."""
+	"""A verified payment buys `months` on top of whatever is left (never from the past). A month is 30 days; every
+	full 12 months is a 365-day year, so a yearly payment lasts a real year."""
 	now = now or utcnow()
 	base = as_utc(current_paid_until)
 	start = base if base and base > now else now
-	return start + timedelta(days=30 * max(1, int(months)))
+	months = max(1, int(months))
+	return start + timedelta(days=365 * (months // 12) + 30 * (months % 12))
+
+
+def period_of(value: Any) -> str:
+	"""The billing period of a subscription row / value; anything unknown is Monthly."""
+	period = value.get("billing_period") if hasattr(value, "get") else value
+	return period if period in PERIOD_MONTHS else MONTHLY
+
+
+def plan_prices(plan: str | None) -> tuple[float, float]:
+	"""(monthly_price, yearly_price) of a plan."""
+	if not plan:
+		return 0.0, 0.0
+	row = frappe.db.get_value("Space Plan", plan, ["monthly_price", "yearly_price"], as_dict=True) or {}
+	return float(row.get("monthly_price") or 0), float(row.get("yearly_price") or 0)
 
 
 def state_hash(payload: dict[str, Any]) -> str:
@@ -358,11 +378,22 @@ def state_payload(subscription: str) -> dict[str, Any]:
 		"status": status,
 		"trial_ends_at": _iso(doc.get("trial_ends_at")),
 		"paid_until": _iso(doc.get("paid_until")),
+		"billing_period": period_of(doc),
 		"grace_days": s["payment_grace_days"],
 		"site_url": f"https://{domain}" if domain else None,
 		"portal_url": portal,
+		"manage_url": _manage_url(portal, site),
 		"synced_at": datetime.now(timezone.utc).isoformat(),
 	}
+
+
+def _manage_url(portal: str | None, site: str | None) -> str | None:
+	"""Where the customer changes plan / pays: their site's page in the customer portal (the tenant only shows
+	information and links here; plan changes happen in the portal)."""
+	if not portal or not site:
+		return portal
+	slug = frappe.db.get_value("Space Site", site, "site_name") or site
+	return f"{portal}/sites/{slug}"
 
 
 def _iso(value: Any) -> str | None:
@@ -424,6 +455,8 @@ def reconcile_pushes(now: datetime | None = None, *, max_pushes: int = 25, deadl
 		else:
 			counts["failed"] += 1
 		commit()
+	for key, value in reconcile_protected(max_pushes=max(0, max_pushes - counts["pushed"] - counts["failed"])).items():
+		counts[key] += value
 	return counts
 
 
@@ -491,8 +524,9 @@ def extend_trial(subscription: str, days: int, *, reason: str, actor: str | None
 
 def record_payment(subscription: str, *, provider: str, payment_id: str, amount: float, currency: str,
 		months: int = 1, actor: str | None = None) -> dict[str, Any]:
-	"""A verified payment: one month more of ACTIVE. Idempotent on (provider, payment_id) through the event
-	table's unique key, so a retried request or a double click cannot add a second month.
+	"""A verified payment: one billing period (a month, or a year for a Yearly site -- set by an admin, never by the
+	caller, so a client cannot under- or over-credit) more of ACTIVE. Idempotent on (provider, payment_id) through
+	the event table's unique key, so a retried request or a double click cannot add a second period.
 
 	A deleted site refuses the payment BEFORE anything is recorded (a charge with no Space record is the worst
 	outcome); a SUSPENDED subscription (only an admin suspends) keeps its suspension: the months are credited, the
@@ -509,6 +543,7 @@ def record_payment(subscription: str, *, provider: str, payment_id: str, amount:
 	)
 	if first is None:
 		return {"applied": False, "paid_until": _iso(doc.get("paid_until"))}
+	months = PERIOD_MONTHS[period_of(doc)]
 	until = next_paid_until(doc.get("paid_until"), months=months)
 	money = {"paid_until": until, "next_billing_date": until.date(), "renewal_date": until.date(), "end_date": until.date()}
 	suspended = status == SUSPENDED
@@ -524,7 +559,7 @@ def record_payment(subscription: str, *, provider: str, payment_id: str, amount:
 			"amount": amount, "currency": currency, "status": "Succeeded", "method": provider, "reference": payment_id,
 		}).insert(ignore_permissions=True)
 	push_state(subscription)
-	return {"applied": True, "paid_until": _iso(until), "suspended": suspended}
+	return {"applied": True, "paid_until": _iso(until), "suspended": suspended, "months": months}
 
 
 def _payment_history_ready() -> bool:
@@ -604,7 +639,8 @@ def view(subscription: str, now: datetime | None = None) -> dict[str, Any]:
 	doc = frappe.get_doc("Space Subscription", subscription)
 	site = site_of(subscription)
 	site_doc = frappe.db.get_value("Space Site", site, ["domain", "status", "plan"], as_dict=True) if site else None
-	price = frappe.db.get_value("Space Plan", doc.plan, "monthly_price") if doc.plan else None
+	monthly, yearly = plan_prices(doc.plan)
+	period = period_of(doc)
 	s = settings()
 	last = as_utc(doc.get("last_activity_at"))
 	baseline = doc.get("trial_started_at")
@@ -615,7 +651,11 @@ def view(subscription: str, now: datetime | None = None) -> dict[str, Any]:
 		"site_status": site_doc.status if site_doc else None,
 		"lifecycle_status": doc.get("lifecycle_status") or None,
 		"plan": doc.plan,
-		"monthly_price": price,
+		"monthly_price": monthly,
+		"yearly_price": yearly,
+		"billing_period": period,
+		"period_price": yearly if period == YEARLY else monthly,
+		"protected": False,
 		"trial_started_at": _iso(doc.get("trial_started_at")),
 		"trial_ends_at": _iso(doc.get("trial_ends_at")),
 		"remaining_days": remaining_days(doc.get("trial_ends_at"), now) if (doc.get("lifecycle_status") == TRIAL) else None,
@@ -627,6 +667,74 @@ def view(subscription: str, now: datetime | None = None) -> dict[str, Any]:
 		"deletion_hold": bool(doc.get("deletion_hold")),
 		"read_only": (doc.get("lifecycle_status") in READ_ONLY) and bool(s["lifecycle_enforcement_enabled"]),
 	}
+
+
+# --- protected sites (display only) ----------------------------------------------------------------------------
+
+def is_protected_site(site: str) -> bool:
+	"""A real company site that Space merely tracks (Space Settings > Protected Domains)."""
+	domain = (frappe.db.get_value("Space Site", site, "domain") or "").lower()
+	return bool(domain and domain in protected_domains()) or site.lower() in protected_domains()
+
+
+def protected_view(site: str) -> dict[str, Any]:
+	"""What a protected site shows: a neutral ACTIVE badge. Display only -- no state is written, no trial clock
+	starts, nothing is ever restricted or deleted (the shields in the delete job are unchanged)."""
+	row = frappe.db.get_value("Space Site", site, ["domain", "status", "plan", "subscription"], as_dict=True) or {}
+	sub = frappe.get_doc("Space Subscription", row.subscription) if row.get("subscription") else None
+	plan = (sub.plan if sub else None) or row.get("plan")
+	monthly, yearly = plan_prices(plan)
+	period = period_of(sub) if sub else MONTHLY
+	return {
+		"subscription": row.get("subscription"), "site": site,
+		"site_url": f"https://{row.domain}" if row.get("domain") else None, "site_status": row.get("status"),
+		"lifecycle_status": ACTIVE, "plan": plan, "monthly_price": monthly, "yearly_price": yearly,
+		"billing_period": period, "period_price": yearly if period == YEARLY else monthly, "protected": True,
+		"trial_started_at": None, "trial_ends_at": None, "remaining_days": None, "paid_until": None,
+		"next_billing_date": None, "last_activity_at": None, "inactive_days": 0, "deletion_scheduled_at": None,
+		"deletion_hold": False, "read_only": False,
+	}
+
+
+def reconcile_protected(*, max_pushes: int = 10, now: datetime | None = None) -> dict[str, int]:
+	"""Tell protected tenants (no lifecycle state of their own) their informational ACTIVE badge, at most once a
+	day each. Enforcement is always 0 for them (tenant_sync forces it), so this can never restrict anything."""
+	counts = {"pushed": 0, "failed": 0, "unchanged": 0}
+	own = (frappe.local.site or "").lower()
+	try:
+		pusher = frappe.get_attr("space_cloud.services.tenant_sync.push_state")
+	except Exception:
+		return counts
+	for site in frappe.get_all("Space Site", filters={"status": ("in", LIVE_SITE_STATUSES)}, fields=["name", "domain", "subscription"]):
+		if (site.domain or "").lower() == own or not is_protected_site(site.name):
+			continue
+		if site.subscription and frappe.db.get_value("Space Subscription", site.subscription, "lifecycle_status"):
+			continue
+		if counts["pushed"] + counts["failed"] >= max_pushes:
+			break
+		view = protected_view(site.name)
+		payload = {
+			"enforcement_on": 0, "status": ACTIVE, "trial_ends_at": None, "paid_until": None,
+			"billing_period": view["billing_period"], "grace_days": settings()["payment_grace_days"],
+			"site_url": view["site_url"], "synced_at": datetime.now(timezone.utc).isoformat(),
+			"portal_url": f"https://space.{(site.domain or '').split('.', 1)[1]}" if "." in (site.domain or "") else None,
+		}
+		payload["manage_url"] = _manage_url(payload["portal_url"], site.name)
+		key = f"space_protected_push:{site.name}"
+		digest = state_hash(payload)
+		if frappe.cache().get_value(key) == digest:
+			counts["unchanged"] += 1
+			continue
+		try:
+			if pusher(site.name, payload):
+				frappe.cache().set_value(key, digest, expires_in_sec=86400)
+				counts["pushed"] += 1
+			else:
+				counts["failed"] += 1
+		except Exception:
+			frappe.log_error(title=f"Space lifecycle: protected push to {site.name} failed")
+			counts["failed"] += 1
+	return counts
 
 
 # --- admin operations ------------------------------------------------------------------------------------------
@@ -649,6 +757,31 @@ def admin_activate(subscription: str, months: int, *, reason: str, actor: str | 
 	record_event("admin_action", subscription=subscription, site=site_of(subscription), actor=actor,
 		details={"action": "activate", "months": months, "reason": reason, "paid_until": str(until)})
 	push_state(subscription)
+
+
+def set_billing_period(subscription: str, period: str, *, reason: str, actor: str | None = None) -> str:
+	"""Admin chooses Monthly or Yearly billing for a site. It applies from the NEXT payment: what was already paid
+	for is untouched. Yearly needs a yearly price on the plan; a free plan has nothing to bill."""
+	if period not in PERIOD_MONTHS:
+		frappe.throw("Billing period must be Monthly or Yearly")
+	lock(subscription)
+	_refuse_deleted(subscription)
+	doc = frappe.get_doc("Space Subscription", subscription)
+	monthly, yearly = plan_prices(doc.get("plan"))
+	if not monthly and not yearly:
+		frappe.throw("This plan is free: there is nothing to bill")
+	if period == YEARLY and yearly <= 0:
+		frappe.throw("Set a yearly price on this plan first")
+	old = period_of(doc)
+	if old == period:
+		return period
+	doc.billing_period = period
+	doc.flags.ignore_validate_update_after_submit = True
+	doc.save(ignore_permissions=True)
+	record_event("admin_action", subscription=subscription, site=site_of(subscription), actor=actor,
+		details={"action": "set_billing_period", "from": old, "to": period, "reason": reason})
+	push_state(subscription)
+	return period
 
 
 def admin_suspend(subscription: str, *, reason: str, actor: str | None = None) -> None:

@@ -16,6 +16,7 @@
   "trial_ends_on",
   "grace_period_days",
   "renewal",
+  "billing_period",
   "billing_section",
   "last_invoice",
   "notes",
@@ -109,6 +110,14 @@
    "fieldtype": "Check",
    "label": "Auto Renewal",
    "default": "0"
+  },
+  {
+   "fieldname": "billing_period",
+   "fieldtype": "Select",
+   "label": "Billing Period",
+   "options": "Monthly\nYearly",
+   "default": "Monthly",
+   "in_list_view": 0
   },
   {
    "fieldname": "billing_section",
@@ -230,7 +239,7 @@
   }
  ],
  "links": [],
- "modified": "2026-11-07 02:00:00.000000",
+ "modified": "2026-11-07 18:00:00.000000",
  "module": "Space",
  "name": "Space Subscription",
  "permissions": [

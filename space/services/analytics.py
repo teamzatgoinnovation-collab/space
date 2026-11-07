@@ -25,7 +25,7 @@ def capture_daily_analytics():
 	)[0][0]
 	mrr = frappe.db.sql(
 		"""
-		select coalesce(sum(p.monthly_price),0)
+		select coalesce(sum(case when s.billing_period='Yearly' and p.yearly_price>0 then p.yearly_price/12 else p.monthly_price end),0)
 		from `tabSpace Subscription` s
 		join `tabSpace Plan` p on p.name=s.plan
 		where s.status in ('Active','Trial')
