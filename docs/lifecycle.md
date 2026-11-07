@@ -19,6 +19,23 @@ from every state). Each move leaves a `Space Lifecycle Event`. All dates are UTC
 - **Grace**: Space Settings > Payment Grace Days (default 3, 0 allowed). The platform moves ACTIVE -> PENDING_PAYMENT
   after `paid_until + grace`; the same number travels to the tenant (`grace_days`) so both sides agree.
 
+## Billing period (Monthly / Yearly)
+
+`Space Subscription.billing_period` is set per site by an admin (`space.api.lifecycle.set_billing_period`, reason
+required, audited; applies from the NEXT payment, never changes what was already paid). One verified payment buys one
+period: 30 days (Monthly) or 365 days (Yearly). The platform decides the credited period -- the portal's `months` is
+ignored -- and the portal charges the matching price (`Space Plan.yearly_price`; the portal's own table defaults to ten
+monthly prices, override with `PLAN_YEARLY_PRICES_JSON`). Yearly needs a yearly price on the plan; a free plan has
+nothing to bill.
+
+## The badge on every site
+
+Every site shows a badge: trial days, Active (with period and renewal date), payment due, read-only, suspended.
+Protected sites (no lifecycle state by design) show a neutral green **Active** badge: `protected_view` is display only,
+writes nothing and starts no trial; `reconcile_protected` pushes them an informational state (`enforcement_on` 0).
+The tenant's Desk banner links to the site's page in the customer portal (`manage_url`): plan and period changes are
+made there, not on the tenant.
+
 ## Read-only mode
 
 Space Settings > "Enforce read-only mode on customer sites" (off by default). The platform pushes the state to each
